@@ -1,0 +1,56 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "Ubuntu",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/base:noble",
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"installOhMyZshConfig": true,
+			"upgradePackages": true,
+			"username": "automatic",
+			"userUid": "automatic",
+			"userGid": "automatic"
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"installDirectlyFromGitHubRelease": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/python:1": {
+			"installTools": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-extra/features/npm-packages:1": {
+			"packages": ["cspell", "markdownlint-cli2"]
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"DavidAnson.vscode-markdownlint",
+				"streetsidesoftware.code-spell-checker",
+				"esbenp.prettier-vscode",
+				"github.vscode-github-actions"
+			]	
+		}
+	},
+
+	"initializeCommand": "./.devcontainer/initializeCommand.sh",
+	"postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+	"postStartCommand": "rm -f ./.devcontainer/_temp.token",
+	// Mount the workspace folder one level higher than the git repo
+	"workspaceMount": "source=${localWorkspaceFolder}/../,target=/workspaces,type=bind",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+    "remoteEnv": {
+        "UV_LINK_MODE": "copy"
+    },
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [8000]
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

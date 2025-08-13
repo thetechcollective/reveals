@@ -4,9 +4,7 @@ name: Spellcheck
 
 on:
   push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+    branches: [main]
 
 permissions:
   contents: read
