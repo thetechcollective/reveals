@@ -1,0 +1,43 @@
+
+name: Ready
+# This workflow is triggered by 'ready' branches 
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+      - 'ready/*'
+      
+jobs:
+
+  inherit-statuses:
+    name: Inherit statuses
+    permissions:
+      statuses: write
+    uses: lakruzz/workflows/.github/workflows/inherit_statuses.yml@experimental
+  
+  fast-forward-merge:
+    name: Merge
+    needs:
+      - inherit-statuses
+    permissions:
+      contents: write
+    secrets:
+      READY_PUSHER: ${{ secrets.READY_PUSHER }}
+    uses: lakruzz/workflows/.github/workflows/fast_forward.yml@experimental
+    with:
+      target_branch: main #default is main
+      user_name: "Ready Pusher" #required 
+      user_email: "ready-pusher@lakruzz.com" # required
+
+  close_issue:
+    needs: fast-forward-merge
+    permissions:
+      issues: write
+      contents: write
+    uses: lakruzz/workflows/.github/workflows/close_issue.yml@experimental
+    with:
+      user_name: "Ready Pusher"
+      user_email: "ready-pusher@lakruzz.com"
+      delete_issue_branch: true # default is true
+      delete_ready_branch: true # default is true

@@ -1,0 +1,8 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll.markdownlint": "always",
+        "source.fixAll.cspell": "explicit",
+        "source.fixAll.prettier": "explicit"
+    },
+    "markdownlint.configFile": ".markdownlint-cli2.jsonc"
+}
