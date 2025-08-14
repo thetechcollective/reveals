@@ -6,11 +6,14 @@
     "!temp/**"
   ],
   "config": {
-    "MD033": false,
     "MD004": { "style": "dash" },
+    "MD012": false,
     "MD013": false,
+    "MD033": false,
+    "MD034": false,
     "MD036": false,
-    "MD041": { "allow_preamble": true, "level": 1 },
+    //"MD041": { "allow_preamble": true, "level": 2 },
+    "MD041": false,
     "MD042": false
   }
 }

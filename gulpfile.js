@@ -20,7 +20,7 @@ const minify = require('gulp-clean-css')
 const connect = require('gulp-connect')
 const autoprefixer = require('gulp-autoprefixer')
 
-const root = yargs.argv.root || '.'
+const root = yargs.argv.root || './site'
 const port = yargs.argv.port || 8000
 const host = yargs.argv.host || '0.0.0.0'
 
@@ -81,7 +81,7 @@ let cache = {};
 gulp.task('js-es5', () => {
     return rollup({
         cache: cache.umd,
-        input: 'js/index.js',
+        input: 'site/js/index.js',
         plugins: [
             resolve(),
             commonjs(),
@@ -92,7 +92,7 @@ gulp.task('js-es5', () => {
         cache.umd = bundle.cache;
         return bundle.write({
             name: 'Reveal',
-            file: './dist/reveal.js',
+            file: './site/dist/reveal.js',
             format: 'umd',
             banner: jsLicense,
             sourcemap: true
@@ -104,7 +104,7 @@ gulp.task('js-es5', () => {
 gulp.task('js-es6', () => {
     return rollup({
         cache: cache.esm,
-        input: 'js/index.js',
+        input: 'site/js/index.js',
         plugins: [
             resolve(),
             commonjs(),
@@ -114,7 +114,7 @@ gulp.task('js-es6', () => {
     }).then( bundle => {
         cache.esm = bundle.cache;
         return bundle.write({
-            file: './dist/reveal.esm.js',
+            file: './site/dist/reveal.esm.js',
             format: 'es',
             banner: jsLicense,
             sourcemap: true
@@ -127,12 +127,12 @@ gulp.task('js', gulp.parallel('js-es5', 'js-es6'));
 // built-in plugins
 gulp.task('plugins', () => {
     return Promise.all([
-        { name: 'RevealHighlight', input: './plugin/highlight/plugin.js', output: './plugin/highlight/highlight' },
-        { name: 'RevealMarkdown', input: './plugin/markdown/plugin.js', output: './plugin/markdown/markdown' },
-        { name: 'RevealSearch', input: './plugin/search/plugin.js', output: './plugin/search/search' },
-        { name: 'RevealNotes', input: './plugin/notes/plugin.js', output: './plugin/notes/notes' },
-        { name: 'RevealZoom', input: './plugin/zoom/plugin.js', output: './plugin/zoom/zoom' },
-        { name: 'RevealMath', input: './plugin/math/plugin.js', output: './plugin/math/math' },
+        { name: 'RevealHighlight', input: './site/plugin/highlight/plugin.js', output: './site/plugin/highlight/highlight' },
+        { name: 'RevealMarkdown', input: './site/plugin/markdown/plugin.js', output: './site/plugin/markdown/markdown' },
+        { name: 'RevealSearch', input: './site/plugin/search/plugin.js', output: './site/plugin/search/search' },
+        { name: 'RevealNotes', input: './site/plugin/notes/plugin.js', output: './site/plugin/notes/notes' },
+        { name: 'RevealZoom', input: './site/plugin/zoom/plugin.js', output: './site/plugin/zoom/zoom' },
+        { name: 'RevealMath', input: './site/plugin/math/plugin.js', output: './site/plugin/math/math' },
     ].map( plugin => {
         return rollup({
                 cache: cache[plugin.input],
@@ -185,16 +185,16 @@ function compileSass() {
   });
 }
 
-gulp.task('css-themes', () => gulp.src(['./css/theme/source/*.{sass,scss}'])
+gulp.task('css-themes', () => gulp.src(['./site/css/theme/source/*.{sass,scss}'])
         .pipe(compileSass())
-        .pipe(gulp.dest('./dist/theme')))
+        .pipe(gulp.dest('./site/dist/theme')))
 
-gulp.task('css-core', () => gulp.src(['css/reveal.scss'])
+gulp.task('css-core', () => gulp.src(['site/css/reveal.scss'])
     .pipe(compileSass())
     .pipe(autoprefixer())
     .pipe(minify({compatibility: 'ie9'}))
     .pipe(header(cssLicense))
-    .pipe(gulp.dest('./dist')))
+    .pipe(gulp.dest('./site/dist')))
 
 gulp.task('css', gulp.parallel('css-themes', 'css-core'))
 
@@ -265,7 +265,7 @@ gulp.task('qunit', () => {
     } );
 } )
 
-gulp.task('eslint', () => gulp.src(['./js/**', 'gulpfile.js'])
+gulp.task('eslint', () => gulp.src(['./site/js/**', 'gulpfile.js'])
         .pipe(eslint())
         .pipe(eslint.format()))
 
@@ -278,22 +278,22 @@ gulp.task('build', gulp.parallel('js', 'css', 'plugins'))
 gulp.task('package', gulp.series(async () => {
 
     let dirs = [
-        './index.html',
-        './dist/**',
-        './plugin/**',
+        './site/index.html',
+        './site/dist/**',
+        './site/plugin/**',
         './*/*.md'
     ];
 
-    if (fs.existsSync('./lib')) dirs.push('./lib/**');
-    if (fs.existsSync('./images')) dirs.push('./images/**');
-    if (fs.existsSync('./slides')) dirs.push('./slides/**');
+    if (fs.existsSync('./site/lib')) dirs.push('./site/lib/**');
+    if (fs.existsSync('./site/images')) dirs.push('./site/images/**');
+    if (fs.existsSync('./site/slides')) dirs.push('./site/slides/**');
 
-    return gulp.src( dirs, { base: './', encoding: false } )
+    return gulp.src( dirs, { base: './site/', encoding: false } )
     .pipe(zip('reveal-js-presentation.zip')).pipe(gulp.dest('./'))
 
 }))
 
-gulp.task('reload', () => gulp.src(['index.html'])
+gulp.task('reload', () => gulp.src(['site/index.html'])
     .pipe(connect.reload()));
 
 gulp.task('serve', () => {
@@ -312,18 +312,18 @@ gulp.task('serve', () => {
         `!${slidesRoot}**/node_modules/**`, // ignore node_modules
     ], gulp.series('reload'))
 
-    gulp.watch(['js/**'], gulp.series('js', 'reload', 'eslint'))
+    gulp.watch(['site/js/**'], gulp.series('js', 'reload', 'eslint'))
 
-    gulp.watch(['plugin/**/plugin.js', 'plugin/**/*.html'], gulp.series('plugins', 'reload'))
+    gulp.watch(['site/plugin/**/plugin.js', 'site/plugin/**/*.html'], gulp.series('plugins', 'reload'))
 
     gulp.watch([
-        'css/theme/source/**/*.{sass,scss}',
-        'css/theme/template/*.{sass,scss}',
+        'site/css/theme/source/**/*.{sass,scss}',
+        'site/css/theme/template/*.{sass,scss}',
     ], gulp.series('css-themes', 'reload'))
 
     gulp.watch([
-        'css/*.scss',
-        'css/print/*.{sass,scss,css}'
+        'site/css/*.scss',
+        'site/css/print/*.{sass,scss,css}'
     ], gulp.series('css-core', 'reload'))
 
     gulp.watch(['test/*.html'], gulp.series('test'))
