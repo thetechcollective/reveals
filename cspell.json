@@ -19,6 +19,9 @@
         "**/*.yaml",
         "**/LICENSE"
     ],
+    "ignoreRegExpList": [
+        "/```[\\s\\S]*?```/g"
+    ],
     "words": [
         "lakruzz",
         "albertbanke",
