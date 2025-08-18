@@ -38,6 +38,39 @@
 		}
 	}
 
+	// Use monospace font for text inputs (handle, gist, filename, separators)
+	input[type="text"] {
+		font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+	}
+
+	// Style select elements when they have the default option selected
+	select.default-selected {
+		color: #999 !important;
+	}
+
+	// Ensure non-default options appear normal - be more specific
+	select:not(.default-selected) {
+		color: #333 !important;
+	}
+
+	// Additional specificity for theme select specifically
+	#themeSelect.default-selected {
+		color: #999 !important;
+	}
+
+	#themeSelect:not(.default-selected) {
+		color: #333 !important;
+	}
+
+	// Additional specificity for highlight select specifically  
+	#highlightStyle.default-selected {
+		color: #999 !important;
+	}
+
+	#highlightStyle:not(.default-selected) {
+		color: #333 !important;
+	}
+
 	small {
 		color: #666;
 		font-size: 12px;
@@ -52,15 +85,27 @@
 .btn {
 	background: #007bff;
 	color: white;
-	padding: 12px 24px;
+	padding: 12px 20px;
 	border: none;
 	border-radius: 4px;
-	font-size: 16px;
+	font-size: 14px;
 	cursor: pointer;
-	margin-right: 10px;
+	margin-right: 8px;
+	margin-bottom: 10px;
+	transition: background-color 0.2s ease;
 
-	&:hover {
+	&:hover:not(:disabled) {
 		background: #0056b3;
+	}
+
+	&:disabled {
+		background: #6c757d;
+		cursor: not-allowed;
+		opacity: 0.6;
+
+		&:hover {
+			background: #6c757d;
+		}
 	}
 
 	&.btn-secondary {
@@ -72,6 +117,19 @@
 	}
 }
 
+.button-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	
+	.btn {
+		flex: 1;
+		margin-right: 0;
+		margin-bottom: 0;
+		min-width: 120px;
+	}
+}
+
 .form-note {
 	background: #fff3cd;
 	border: 1px solid #ffeaa7;
@@ -79,4 +137,14 @@
 	padding: 12px;
 	margin-bottom: 20px;
 	font-size: 14px;
+
+	code {
+		background: #f4f4f4;
+		border: 1px solid #ddd;
+		border-radius: 3px;
+		padding: 2px 4px;
+		font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+		font-size: 13px;
+		color: #333;
+	}
 }
