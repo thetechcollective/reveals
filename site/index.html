@@ -1,40 +1,195 @@
 <!doctype html>
 <html lang="en">
+
 	<head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>reveal.js - Gist Loader</title>
+		<meta name="description" content="Create beautiful presentations from GitHub Gists using reveal.js">
 
-		<link rel="stylesheet" href="dist/reset.css">
 		<link rel="stylesheet" href="dist/reveal.css">
-		<link rel="stylesheet" href="dist/theme/black.css">
-
-		<!-- Theme used for syntax highlighted code -->
-		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+		<link rel="stylesheet" href="dist/theme/white.css">
+		<link rel="stylesheet" href="dist/gistloader.css">
+		
+		<style>
+			.landing-page {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 40px 20px;
+				line-height: 1.6;
+			}
+			.hero {
+				text-align: center;
+				margin-bottom: 60px;
+			}
+			.hero h1 {
+				font-size: 3.5rem;
+				margin-bottom: 20px;
+				background: linear-gradient(135deg, #007bff, #0056b3);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				background-clip: text;
+			}
+			.hero p {
+				font-size: 1.3rem;
+				color: #666;
+				margin-bottom: 40px;
+			}
+			.cta-buttons {
+				display: flex;
+				gap: 20px;
+				justify-content: center;
+				flex-wrap: wrap;
+			}
+			.cta-button {
+				display: inline-block;
+				padding: 15px 30px;
+				text-decoration: none;
+				border-radius: 6px;
+				font-weight: 600;
+				font-size: 1.1rem;
+				transition: transform 0.2s, box-shadow 0.2s;
+			}
+			.cta-button:hover {
+				transform: translateY(-2px);
+				box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+			}
+			.cta-primary {
+				background: #007bff;
+				color: white;
+			}
+			.cta-secondary {
+				background: #f8f9fa;
+				color: #333;
+				border: 2px solid #ddd;
+			}
+			.features {
+				display: grid;
+				grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+				gap: 30px;
+				margin: 60px 0;
+			}
+			.feature {
+				text-align: center;
+				padding: 30px 20px;
+				background: #f8f9fa;
+				border-radius: 8px;
+			}
+			.feature-icon {
+				font-size: 3rem;
+				margin-bottom: 20px;
+			}
+			.feature h3 {
+				margin-bottom: 15px;
+				color: #333;
+			}
+			.feature p {
+				color: #666;
+			}
+			.example-section {
+				background: #f8f9fa;
+				padding: 40px;
+				border-radius: 12px;
+				margin: 60px 0;
+				text-align: center;
+			}
+			.example-section h2 {
+				margin-bottom: 20px;
+				color: #333;
+			}
+			.example-code {
+				background: #2d3748;
+				color: #e2e8f0;
+				padding: 20px;
+				border-radius: 8px;
+				font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+				text-align: left;
+				margin: 20px 0;
+				overflow-x: auto;
+			}
+			.footer {
+				text-align: center;
+				margin-top: 80px;
+				padding-top: 40px;
+				border-top: 1px solid #eee;
+				color: #666;
+			}
+		</style>
 	</head>
+
 	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+		<div class="landing-page">
+			<div class="hero">
+				<h1>🎯 reveal.js Gist Loader</h1>
+				<p>Transform your GitHub Gists into beautiful presentations instantly</p>
+				<div class="cta-buttons">
+					<a href="gist.html" class="cta-button cta-primary">🚀 Create Presentation</a>
+					<a href="gist.html?owner=lakruzz&gist=ac9ecc6b852a433ffb88056bfdb15d68&file=presentation.md" class="cta-button cta-secondary">👀 View Demo</a>
+				</div>
+			</div>
+
+			<div class="features">
+				<div class="feature">
+					<div class="feature-icon">⚡</div>
+					<h3>Instant Setup</h3>
+					<p>No installation required. Just provide your GitHub username and gist ID to create a presentation.</p>
+				</div>
+				<div class="feature">
+					<div class="feature-icon">🎨</div>
+					<h3>Beautiful Themes</h3>
+					<p>Choose from multiple reveal.js themes to match your presentation style and audience.</p>
+				</div>
+				<div class="feature">
+					<div class="feature-icon">📝</div>
+					<h3>Markdown Powered</h3>
+					<p>Write your presentations in simple Markdown with support for code highlighting and math.</p>
+				</div>
+				<div class="feature">
+					<div class="feature-icon">🔗</div>
+					<h3>Shareable Links</h3>
+					<p>Generate permanent links to your presentations that update automatically when you edit your gist.</p>
+				</div>
+				<div class="feature">
+					<div class="feature-icon">📱</div>
+					<h3>Responsive Design</h3>
+					<p>Your presentations work perfectly on desktop, tablet, and mobile devices.</p>
+				</div>
+				<div class="feature">
+					<div class="feature-icon">🔧</div>
+					<h3>Customizable</h3>
+					<p>Configure slide separators, themes, and highlighting to match your preferences.</p>
+				</div>
+			</div>
+
+			<div class="example-section">
+				<h2>How It Works</h2>
+				<p>Create a Markdown file in a GitHub Gist, then use our loader to turn it into a presentation:</p>
+				<div class="example-code">
+# Welcome to My Presentation
+
+A brief introduction to my topic.
+
+&lt;!--slide--&gt;
+
+## Main Content
+
+- Point one
+- Point two
+- Point three
+
+&lt;!--slide--&gt;
+
+## Conclusion
+
+Thank you for your attention!</div>
+				<p>Separate slides with <code>&lt;!--slide--&gt;</code> comments and you're ready to present!</p>
+			</div>
+
+			<div class="footer">
+				<p>Built with ❤️ using <a href="https://revealjs.com/" target="_blank">reveal.js</a> | 
+				<a href="https://github.com/thetechcollective/reveals" target="_blank">View Source</a></p>
 			</div>
 		</div>
-
-		<script src="dist/reveal.js"></script>
-		<script src="plugin/notes/notes.js"></script>
-		<script src="plugin/markdown/markdown.js"></script>
-		<script src="plugin/highlight/highlight.js"></script>
-		<script>
-			// More info about initialization & config:
-			// - https://revealjs.com/initialization/
-			// - https://revealjs.com/config/
-			Reveal.initialize({
-				hash: true,
-
-				// Learn about plugins: https://revealjs.com/plugins/
-				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
-			});
-		</script>
 	</body>
 </html>

@@ -3,12 +3,15 @@
   "globs": [
     "**/*.md",
     "!node_modules/**",
-    "!temp/**"
+    "!temp/**",
+    "!gist/**"
   ],
   "config": {
+    "MD001": false,
     "MD004": { "style": "dash" },
     "MD012": false,
     "MD013": false,
+    "MD025": false,
     "MD033": false,
     "MD034": false,
     "MD036": false,
