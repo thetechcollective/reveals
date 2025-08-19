@@ -1,0 +1,35 @@
+{
+	"name": "Alpine Linux with Mermaid CLI",
+	"image": "node:18.20-alpine3.19",
+	"features": {
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.vscode-json",
+				"redhat.vscode-yaml",
+				"davidanson.vscode-markdownlint",
+				"streetsidesoftware.code-spell-checker",
+				"ms-vscode.live-server"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+	"postCreateCommand": "sh .devcontainer/alpine/setup.sh",
+	"remoteUser": "node",
+	"workspaceFolder": "/workspace",
+	"mounts": [
+		"source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+	],
+	"forwardPorts": [8000, 3000, 8080],
+	"portsAttributes": {
+		"8000": {
+			"label": "Reveal.js Server",
+			"onAutoForward": "notify"
+		}
+	}
+}

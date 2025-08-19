@@ -1,0 +1,6 @@
+{
+  "executablePath": "/home/vscode/.cache/puppeteer/chrome/linux_arm-139.0.7258.68/chrome-linux64/chrome",
+  "args": [
+    "--no-sandbox"
+  ]
+}
