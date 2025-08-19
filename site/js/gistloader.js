@@ -62,12 +62,23 @@ class GistLoader {
 			const themeEl = document.getElementById('theme');
 			const highlightEl = document.getElementById('highlight-theme');
 			
-			if (themeEl && theme && theme !== DEFAULT_CONFIG.theme) {
-				themeEl.href = `/dist/theme/${theme}.css`;
+			console.log('updateStylesheets called with:', { theme, highlightStyle });
+			console.log('themeEl:', themeEl);
+			console.log('DEFAULT_CONFIG.theme:', DEFAULT_CONFIG.theme);
+			
+			// Always update theme if provided via URL parameter
+			if (themeEl && theme) {
+				const newThemeUrl = `/dist/theme/${theme}.css`;
+				console.log('Updating theme to:', newThemeUrl);
+				themeEl.href = newThemeUrl;
+				console.log('Theme element href after update:', themeEl.href);
 			}
 			
-			if (highlightEl && highlightStyle && highlightStyle !== DEFAULT_CONFIG.highlightStyle) {
-				highlightEl.href = `/plugin/highlight/${highlightStyle}.css`;
+			// Always update highlight style if provided via URL parameter
+			if (highlightEl && highlightStyle) {
+				const newHighlightUrl = `/plugin/highlight/${highlightStyle}.css`;
+				console.log('Updating highlight style to:', newHighlightUrl);
+				highlightEl.href = newHighlightUrl;
 			}
 		} catch (error) {
 			console.log('Error updating stylesheets:', error);
