@@ -66,6 +66,10 @@ class GistLoader {
 			console.log('themeEl:', themeEl);
 			console.log('DEFAULT_CONFIG.theme:', DEFAULT_CONFIG.theme);
 			
+			console.log('updateStylesheets called with:', { theme, highlightStyle });
+			console.log('themeEl:', themeEl);
+			console.log('DEFAULT_CONFIG.theme:', DEFAULT_CONFIG.theme);
+			
 			// Always update theme if provided via URL parameter
 			if (themeEl && theme) {
 				const newThemeUrl = `/dist/theme/${theme}.css`;

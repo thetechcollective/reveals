@@ -37,6 +37,14 @@ jobs:
       - name: Build site
         run: npm run build
         
+      - name: Create version file
+        run: |
+          echo "Repository: ${{ github.repository }}" > ./site/version.txt
+          echo "Branch: ${{ github.ref_name }}" >> ./site/version.txt
+          echo "Commit: ${{ github.sha }}" >> ./site/version.txt
+          echo "Timestamp: $(date -u)" >> ./site/version.txt
+          echo "Workflow run: ${{ github.run_number }}" >> ./site/version.txt
+        
       - name: Setup Pages
         uses: actions/configure-pages@v4
         
