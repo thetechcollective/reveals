@@ -63,11 +63,11 @@ class GistLoader {
 			const highlightEl = document.getElementById('highlight-theme');
 			
 			if (themeEl && theme && theme !== DEFAULT_CONFIG.theme) {
-				themeEl.href = `dist/theme/${theme}.css`;
+				themeEl.href = `/dist/theme/${theme}.css`;
 			}
 			
 			if (highlightEl && highlightStyle && highlightStyle !== DEFAULT_CONFIG.highlightStyle) {
-				highlightEl.href = `plugin/highlight/${highlightStyle}.css`;
+				highlightEl.href = `/plugin/highlight/${highlightStyle}.css`;
 			}
 		} catch (error) {
 			console.log('Error updating stylesheets:', error);
