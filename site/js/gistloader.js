@@ -158,8 +158,8 @@ class GistLoader {
 
 					<div class="button-group">
 						<button type="submit" class="btn btn-secondary" id="load-btn">🚀 Load</button>
-						<button type="button" class="btn btn-secondary" id="copy-url-btn">� Copy URL</button>
-						<button type="button" class="btn" id="fill-example-btn">� Load Demo</button>
+						<button type="button" class="btn btn-secondary" id="copy-url-btn">⏺️ Copy URL</button>
+						<button type="button" class="btn" id="fill-example-btn">⬆️ Load Demo</button>
 					</div>
 				</form>
 			</div>

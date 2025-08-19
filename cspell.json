@@ -20,7 +20,11 @@
         "**/LICENSE"
     ],
     "ignoreRegExpList": [
-        "/```[\\s\\S]*?```/g"
+        "/```[\\s\\S]*?```/g",          // block code
+        "/`.*?`/g",                     // inline code
+        "/<!--.*?-->/g",                // HTML comments
+        "/class=[\"'].*?[\"']/",        // class attributes
+        "/\\\\\\[[\\s\\S]*?\\\\\\]/g"   //LaTex block
     ],
     "words": [
         "lakruzz",
