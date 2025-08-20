@@ -19,7 +19,8 @@
 			}
 		}
 	},
-	"postCreateCommand": "sh .devcontainer/alpine/setup.sh",
+	"initializeCommand": "./.devcontainer/initializeCommand.sh",
+	"postCreateCommand": "sh .devcontainer/alpine/alpine-mermaid-setup.sh && ./.devcontainer/postCreateCommand.sh",
 	"remoteUser": "node",
 	"workspaceFolder": "/workspace",
 	"mounts": [

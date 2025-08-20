@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Mermaid Plugin Demo - reveal.js</title>
+
+		<link rel="stylesheet" href="../../dist/reset.css">
+		<link rel="stylesheet" href="../../dist/reveal.css">
+		<link rel="stylesheet" href="../../dist/theme/white.css">
+		<link rel="stylesheet" href="mermaid.css">
+
+		<!-- Mermaid.js library -->
+		<script src="https://cdn.jsdelivr.net/npm/mermaid@11.9.0/dist/mermaid.min.js"></script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Mermaid Plugin Demo</h1>
+					<p>Runtime rendering of Mermaid diagrams in Reveal.js</p>
+				</section>
+
+				<section>
+					<h2>Flowchart Example</h2>
+					<div class="mermaid">
+						flowchart TD
+							A[Start] --> B{Is it working?}
+							B -->|Yes| C[Great!]
+							B -->|No| D[Debug]
+							D --> B
+							C --> E[End]
+					</div>
+				</section>
+
+				<section>
+					<h2>Sequence Diagram</h2>
+					<div class="mermaid">
+						sequenceDiagram
+							participant A as Alice
+							participant B as Bob
+							A->>B: Hello Bob, how are you?
+							B-->>A: Great, thanks for asking!
+							A->>B: See you later!
+					</div>
+				</section>
+
+				<section>
+					<h2>Git Graph</h2>
+					<div class="mermaid">
+						gitgraph
+							commit id: "Initial commit"
+							branch develop
+							checkout develop
+							commit id: "Add feature A"
+							commit id: "Add feature B"
+							checkout main
+							merge develop
+							commit id: "Release v1.0"
+					</div>
+				</section>
+
+				<section>
+					<h2>Code Block Support</h2>
+					<p>You can also use code blocks:</p>
+					<pre><code class="language-mermaid">
+graph LR
+	A[Hard edge] -->|Link text| B(Round edge)
+	B --> C{Decision}
+	C -->|One| D[Result one]
+	C -->|Two| E[Result two]
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Fragment Support</h2>
+					<div class="fragment">
+						<div class="mermaid">
+							pie title Pets adopted by volunteers
+								"Dogs" : 386
+								"Cats" : 85
+								"Rats" : 15
+						</div>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<script src="../../dist/reveal.js"></script>
+		<script src="plugin.js"></script>
+
+		<script>
+			Reveal.initialize({
+				hash: true,
+				plugins: [ RevealMermaid ]
+			});
+		</script>
+	</body>
+</html>
