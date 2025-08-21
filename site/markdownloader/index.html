@@ -33,9 +33,9 @@
 
 		<script>
 			// Initialize when DOM is ready
-			document.addEventListener('DOMContentLoaded', () => {
+			document.addEventListener('DOMContentLoaded', async () => {
 				const markdownLoader = new MarkdownLoader();
-				markdownLoader.initialize();
+				await markdownLoader.initialize();
 			});
 		</script>
 

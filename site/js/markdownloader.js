@@ -30,6 +30,13 @@ const AVAILABLE_HIGHLIGHT_STYLES = [
 ];
 
 /**
+ * Available transitions for the presentation
+ */
+const AVAILABLE_TRANSITIONS = [
+	'none', 'fade', 'slide', 'convex', 'concave', 'zoom'
+];
+
+/**
  * MarkdownLoader class to handle repository-based presentations
  */
 class MarkdownLoader {
@@ -48,6 +55,7 @@ class MarkdownLoader {
 			file: params.get('file'),
 			theme: params.get('theme'),
 			highlightStyle: params.get('highlightStyle'),
+			transition: params.get('transition'),
 			sectionSeparator: params.get('sectionSeparator'),
 			slideSeparator: params.get('slideSeparator'),
 			load: params.get('load')
@@ -339,35 +347,301 @@ class MarkdownLoader {
 	}
 
 	/**
+	 * Build GitHub raw URL for resources (images, scripts, etc.)
+	 */
+	buildRepoResourceUrl(owner, repo, filename) {
+		return `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
+	}
+
+	/**
+	 * Fetch markdown content from repository and precompile it
+	 */
+	async fetchAndPrecompileMarkdown(repoUrl, owner, repo) {
+		console.log('Fetching markdown from:', repoUrl);
+		
+		// Add cache-busting timestamp to prevent browser caching
+		const cacheBustUrl = repoUrl + '?_cb=' + Date.now();
+		console.log('Cache-busted URL:', cacheBustUrl);
+		
+		const response = await fetch(cacheBustUrl);
+		
+		if (!response.ok) {
+			throw new Error(`Failed to fetch markdown: ${response.status} ${response.statusText}`);
+		}
+		
+		const rawMarkdown = await response.text();
+		console.log('Raw markdown fetched, length:', rawMarkdown.length);
+		
+		// Parse frontmatter
+		const { frontmatter, content } = this.parseFrontmatter(rawMarkdown);
+		console.log('Frontmatter parsed:', frontmatter);
+		
+		// Apply frontmatter to page
+		this.applyFrontmatter(frontmatter);
+		
+		// Process relative paths in the markdown content
+		const processedMarkdown = this.processRelativePaths(content, owner, repo);
+		console.log('Markdown processed, length:', processedMarkdown.length);
+		
+		return processedMarkdown;
+	}
+
+	/**
+	 * Parse YAML frontmatter from markdown content
+	 */
+	parseFrontmatter(markdown) {
+		// Check if markdown starts with frontmatter delimiter
+		if (!markdown.startsWith('---\n')) {
+			return { frontmatter: {}, content: markdown };
+		}
+		
+		// Find the closing delimiter
+		const endIndex = markdown.indexOf('\n---\n', 4);
+		if (endIndex === -1) {
+			return { frontmatter: {}, content: markdown };
+		}
+		
+		// Extract frontmatter and content
+		const frontmatterText = markdown.slice(4, endIndex);
+		const content = markdown.slice(endIndex + 5);
+		
+		// Parse YAML frontmatter (simple parser for basic key-value pairs)
+		const frontmatter = this.parseSimpleYaml(frontmatterText);
+		
+		return { frontmatter, content };
+	}
+
+	/**
+	 * Simple YAML parser for frontmatter (handles basic key-value pairs)
+	 */
+	parseSimpleYaml(yamlText) {
+		const result = {};
+		const lines = yamlText.split('\n');
+		
+		for (const line of lines) {
+			const trimmed = line.trim();
+			if (!trimmed || trimmed.startsWith('#')) continue;
+			
+			const colonIndex = trimmed.indexOf(':');
+			if (colonIndex === -1) continue;
+			
+			const key = trimmed.slice(0, colonIndex).trim();
+			let value = trimmed.slice(colonIndex + 1).trim();
+			
+			// Remove quotes if present
+			if ((value.startsWith('"') && value.endsWith('"')) || 
+			    (value.startsWith("'") && value.endsWith("'"))) {
+				value = value.slice(1, -1);
+			}
+			
+			result[key] = value;
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Apply frontmatter settings to the page
+	 */
+	applyFrontmatter(frontmatter) {
+		// Update HTML head with metadata
+		this.updateHtmlHead(frontmatter);
+		
+		// Update URL parameters if valid values are found
+		this.updateUrlFromFrontmatter(frontmatter);
+	}
+
+	/**
+	 * Update HTML head with frontmatter metadata
+	 */
+	updateHtmlHead(frontmatter) {
+		const head = document.head;
+		
+		// Update title
+		if (frontmatter.title) {
+			console.log('Updating document title from frontmatter:', frontmatter.title);
+			console.log('Current document title before update:', document.title);
+			document.title = frontmatter.title;
+			console.log('Document title after update:', document.title);
+		}
+		
+		// Add or update description meta tag
+		if (frontmatter.description) {
+			console.log('Adding description meta tag:', frontmatter.description);
+			let descriptionMeta = head.querySelector('meta[name="description"]');
+			if (!descriptionMeta) {
+				descriptionMeta = document.createElement('meta');
+				descriptionMeta.name = 'description';
+				head.appendChild(descriptionMeta);
+			}
+			descriptionMeta.content = frontmatter.description;
+		}
+		
+		// Add or update author meta tag
+		if (frontmatter.author) {
+			console.log('Adding author meta tag:', frontmatter.author);
+			let authorMeta = head.querySelector('meta[name="author"]');
+			if (!authorMeta) {
+				authorMeta = document.createElement('meta');
+				authorMeta.name = 'author';
+				head.appendChild(authorMeta);
+			}
+			authorMeta.content = frontmatter.author;
+		}
+	}
+
+	/**
+	 * Update URL parameters based on valid frontmatter values
+	 */
+	updateUrlFromFrontmatter(frontmatter) {
+		const urlParams = new URLSearchParams(window.location.search);
+		let hasChanges = false;
+		
+		// Add transition if valid and not already set
+		if (frontmatter.transition && !urlParams.has('transition')) {
+			const transition = frontmatter.transition.toLowerCase();
+			if (AVAILABLE_TRANSITIONS.includes(transition)) {
+				urlParams.set('transition', transition);
+				hasChanges = true;
+				console.log('Added transition from frontmatter:', transition);
+			}
+		}
+		
+		// Add theme if valid and not already set
+		if (frontmatter.theme && !urlParams.has('theme')) {
+			const theme = frontmatter.theme.toLowerCase();
+			if (AVAILABLE_THEMES.includes(theme)) {
+				urlParams.set('theme', theme);
+				hasChanges = true;
+				console.log('Added theme from frontmatter:', theme);
+			}
+		}
+		
+		// Update URL if we have changes
+		if (hasChanges) {
+			const newUrl = window.location.pathname + '?' + urlParams.toString();
+			console.log('Updating URL with frontmatter params:', newUrl);
+			window.history.replaceState({}, '', newUrl);
+			
+			// Re-parse params to get the updated values
+			this.params = this.getUrlParams();
+		}
+	}
+
+	/**
+	 * Process relative paths in markdown content
+	 * Converts ./path references to full GitHub URLs
+	 */
+	processRelativePaths(markdown, owner, repo) {
+		console.log('Processing relative paths for repo:', `${owner}/${repo}`);
+		
+		// Process markdown image syntax: ![alt](./path)
+		let processed = markdown.replace(/!\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, alt, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
+			console.log(`Replacing image: ${match} -> ![${alt}](${fullUrl})`);
+			return `![${alt}](${fullUrl})`;
+		});
+		
+		// Process markdown link syntax: [text](./path)
+		processed = processed.replace(/\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, text, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
+			console.log(`Replacing link: ${match} -> [${text}](${fullUrl})`);
+			return `[${text}](${fullUrl})`;
+		});
+		
+		// Process HTML src attributes (img, script, etc.): src="./path"
+		processed = processed.replace(/\bsrc="\.\/([^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
+			console.log(`Replacing src: ${match} -> src="${fullUrl}"`);
+			return `src="${fullUrl}"`;
+		});
+		
+		// Process HTML href attributes: href="./path"
+		processed = processed.replace(/\bhref="\.\/([^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
+			console.log(`Replacing href: ${match} -> href="${fullUrl}"`);
+			return `href="${fullUrl}"`;
+		});
+		
+		return processed;
+	}
+
+	/**
 	 * Initialize reveal.js presentation with repository content
 	 */
-	initializePresentation(params) {
-		// Update stylesheets based on parameters only if they differ from defaults
-		this.updateStylesheets(params.theme, params.highlightStyle);
-		
+	async initializePresentation(params) {
 		// Build the repository URL
 		const repoUrl = this.buildRepoRawUrl(params.owner, params.repo, params.file || DEFAULT_CONFIG.file);
 		console.log('Repository URL:', repoUrl);
 		
-		// Create the section element with data-markdown attribute
-		const slidesContainer = document.getElementById('slides-container');
-		slidesContainer.innerHTML = `
-			<section data-markdown="${repoUrl}" data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}"></section>
-		`;
-		
-		// Update page title
-		document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
-		
-		// Initialize Reveal.js AFTER inserting the content
-		Reveal.initialize({
-			controls: true,
-			progress: true,
-			history: true,
-			center: true,
-			hash: true,
-			plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
-		});
-
+		try {
+			// Fetch and precompile the markdown content
+			const processedMarkdown = await this.fetchAndPrecompileMarkdown(repoUrl, params.owner, params.repo);
+			
+			// Re-parse params in case frontmatter updated them
+			params = this.getUrlParams();
+			
+			// Update stylesheets based on parameters (including potential frontmatter updates)
+			this.updateStylesheets(params.theme, params.highlightStyle);
+			
+			// Create the section element with processed markdown content
+			const slidesContainer = document.getElementById('slides-container');
+			slidesContainer.innerHTML = `
+				<section data-markdown data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}">
+					<textarea data-template>${processedMarkdown}</textarea>
+				</section>
+			`;
+			
+			// Update page title only if it wasn't set by frontmatter
+			// Check if title is still the default or contains the loader name
+			if (document.title === 'reveal.js - Markdown Loader' || 
+			    document.title.startsWith('reveal.js - ')) {
+				document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
+				console.log('Set default page title:', document.title);
+			} else {
+				console.log('Keeping frontmatter title:', document.title);
+			}
+			
+			// Build Reveal.js configuration
+			const revealConfig = {
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				hash: true,
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+			};
+			
+			// Add transition if specified
+			if (params.transition && AVAILABLE_TRANSITIONS.includes(params.transition.toLowerCase())) {
+				revealConfig.transition = params.transition.toLowerCase();
+				console.log('Using transition from URL:', revealConfig.transition);
+			}
+			
+			// Initialize Reveal.js AFTER inserting the content
+			Reveal.initialize(revealConfig);
+			
+		} catch (error) {
+			console.error('Error loading and processing markdown:', error);
+			// Fallback to original behavior if precompilation fails
+			this.updateStylesheets(params.theme, params.highlightStyle);
+			
+			const slidesContainer = document.getElementById('slides-container');
+			slidesContainer.innerHTML = `
+				<section data-markdown="${repoUrl}" data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}"></section>
+			`;
+			
+			document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
+			
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				hash: true,
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+			});
+		}
 	}
 
 	/**
@@ -638,7 +912,7 @@ class MarkdownLoader {
 	}	/**
 	 * Initialize the markdown loader
 	 */
-	initialize() {
+	async initialize() {
 		this.params = this.getUrlParams();
 		
 		console.log('Params:', this.params);
@@ -651,7 +925,7 @@ class MarkdownLoader {
 		if (shouldShowForm) {
 			this.showForm();
 		} else {
-			this.initializePresentation(this.params);
+			await this.initializePresentation(this.params);
 		}
 	}
 }
