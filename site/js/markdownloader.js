@@ -358,15 +358,16 @@ class MarkdownLoader {
 		// Update page title
 		document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
 		
-		// Initialize Reveal.js
+		// Initialize Reveal.js AFTER inserting the content
 		Reveal.initialize({
 			controls: true,
 			progress: true,
 			history: true,
 			center: true,
 			hash: true,
-			plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ]
+			plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
 		});
+
 	}
 
 	/**

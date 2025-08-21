@@ -37,7 +37,8 @@
         "codeowners",
         "squezeed",
         "devcontainer",
-        "devcontainers"
+        "devcontainers",
+        "sdlc"
     ],
     "ignoreWords": [
         "cspell",
