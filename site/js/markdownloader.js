@@ -1,10 +1,10 @@
 /**
- * Gist Loader Module
- * Handles loading reveal.js presentations from GitHub Gists
+ * Markdown Loader Module
+ * Handles loading reveal.js presentations from GitHub repositories
  */
 
 /**
- * Default configuration for the gist loader
+ * Default configuration for the markdown loader
  */
 const DEFAULT_CONFIG = {
 	file: 'presentation.md',
@@ -30,9 +30,9 @@ const AVAILABLE_HIGHLIGHT_STYLES = [
 ];
 
 /**
- * GistLoader class to handle gist-based presentations
+ * MarkdownLoader class to handle repository-based presentations
  */
-class GistLoader {
+class MarkdownLoader {
 	constructor() {
 		this.params = null;
 	}
@@ -44,7 +44,7 @@ class GistLoader {
 		const params = new URLSearchParams(window.location.search);
 		return {
 			owner: params.get('owner'),
-			gist: params.get('gist'),
+			repo: params.get('repo'),
 			file: params.get('file'),
 			theme: params.get('theme'),
 			highlightStyle: params.get('highlightStyle'),
@@ -120,23 +120,23 @@ class GistLoader {
 	 */
 	generateForm(params = {}) {
 		return `
-			<div class="gist-form-container">
-				<h1>🎯 reveal.js Gist Loader</h1>
-				<p>Create instant presentations from GitHub Gists</p>
+			<div class="repo-form-container">
+				<h1>🎯 reveal.js Markdown Loader</h1>
+				<p>Create instant presentations from GitHub repositories</p>
 				
 				<div class="form-note">
-					<strong>Note:</strong> GitHub caches gist raw URLs. Changes may take a few minutes to appear. For immediate updates trigger a cache refresh by simply adding an arbitrary parameter to the url (e.g., <code>?v=2</code>).
+					<strong>Note:</strong> GitHub caches repository raw URLs. Changes may take a few minutes to appear. For immediate updates trigger a cache refresh by simply adding an arbitrary parameter to the url (e.g., <code>?v=2</code>).
 				</div>
 
-				<form id="gist-form">
+				<form id="repo-form">
 					<div class="form-group">
-						<label for="owner" class="required">GitHub Username</label>
+						<label for="owner" class="required">GitHub Username/Organization</label>
 						<input type="text" id="owner" name="owner" placeholder="e.g., lakruzz" value="${params.owner || ''}" required>
 					</div>
 
 					<div class="form-group">
-						<label for="gist" class="required">Gist ID</label>
-						<input type="text" id="gist" name="gist" placeholder="e.g., ac9ecc6b852a433ffb88056bfdb15d68" value="${params.gist || ''}" required>
+						<label for="repo" class="required">Repository Name</label>
+						<input type="text" id="repo" name="repo" placeholder="e.g., my-presentation" value="${params.repo || ''}" required>
 					</div>
 
 					<div class="form-group">
@@ -187,7 +187,7 @@ class GistLoader {
 	fillExample() {
 		const elements = {
 			owner: document.getElementById('owner'),
-			gist: document.getElementById('gist'),
+			repo: document.getElementById('repo'),
 			file: document.getElementById('file'),
 			theme: document.getElementById('themeSelect'),
 			highlightStyle: document.getElementById('highlightStyle'),
@@ -197,7 +197,7 @@ class GistLoader {
 
 		// Fill only the required fields
 		if (elements.owner) elements.owner.value = 'lakruzz';
-		if (elements.gist) elements.gist.value = 'ac9ecc6b852a433ffb88056bfdb15d68';
+		if (elements.repo) elements.repo.value = 'my-presentation-repo';
 		
 		// Clear optional fields to use defaults
 		if (elements.file) elements.file.value = '';
@@ -272,7 +272,7 @@ class GistLoader {
 	 * Generate a clean shareable URL from current form values
 	 */
 	generateShareableUrl() {
-		const form = document.getElementById('gist-form');
+		const form = document.getElementById('repo-form');
 		if (!form) return '';
 
 		const formData = new FormData(form);
@@ -299,7 +299,7 @@ class GistLoader {
 	 */
 	async copyShareableUrl() {
 		// Use the same elegant validation as the Load button
-		const form = document.getElementById('gist-form');
+		const form = document.getElementById('repo-form');
 		if (!form || !form.checkValidity()) {
 			// Trigger native browser validation UI (same as Load button)
 			if (form) {
@@ -332,27 +332,27 @@ class GistLoader {
 	}
 
 	/**
-	 * Build GitHub raw URL from owner, gist ID and filename
+	 * Build GitHub raw URL from owner, repository and filename
 	 */
-	buildGistRawUrl(owner, gistId, filename) {
-		return `https://gist.githubusercontent.com/${owner}/${gistId}/raw/${filename}`;
+	buildRepoRawUrl(owner, repo, filename) {
+		return `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
 	}
 
 	/**
-	 * Initialize reveal.js presentation with gist content
+	 * Initialize reveal.js presentation with repository content
 	 */
 	initializePresentation(params) {
 		// Update stylesheets based on parameters only if they differ from defaults
 		this.updateStylesheets(params.theme, params.highlightStyle);
 		
-		// Build the gist URL
-		const gistUrl = this.buildGistRawUrl(params.owner, params.gist, params.file || DEFAULT_CONFIG.file);
-		console.log('Gist URL:', gistUrl);
+		// Build the repository URL
+		const repoUrl = this.buildRepoRawUrl(params.owner, params.repo, params.file || DEFAULT_CONFIG.file);
+		console.log('Repository URL:', repoUrl);
 		
 		// Create the section element with data-markdown attribute
 		const slidesContainer = document.getElementById('slides-container');
 		slidesContainer.innerHTML = `
-			<section data-markdown="${gistUrl}" data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}"></section>
+			<section data-markdown="${repoUrl}" data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}"></section>
 		`;
 		
 		// Update page title
@@ -379,7 +379,7 @@ class GistLoader {
 		document.body.innerHTML = this.generateForm(this.params);
 		
 		// Add form event listener
-		const form = document.getElementById('gist-form');
+		const form = document.getElementById('repo-form');
 		if (form) {
 			form.addEventListener('submit', (event) => this.handleFormSubmit(event));
 		}
@@ -408,7 +408,7 @@ class GistLoader {
 	 */
 	highlightMissingFields() {
 		const ownerField = document.getElementById('owner');
-		const gistField = document.getElementById('gist');
+		const repoField = document.getElementById('repo');
 		const issues = [];
 		
 		// Check owner field
@@ -425,18 +425,18 @@ class GistLoader {
 			issues.push('GitHub Username format is invalid (1-39 chars, alphanumeric and hyphens only)');
 		}
 		
-		// Check gist field
-		const gistValue = gistField ? gistField.value.trim() : '';
-		if (!gistValue) {
-			if (gistField) {
-				this.highlightField(gistField);
+		// Check repo field
+		const repoValue = repoField ? repoField.value.trim() : '';
+		if (!repoValue) {
+			if (repoField) {
+				this.highlightField(repoField);
 			}
-			issues.push('Gist ID is required');
-		} else if (!this.isValidGistId(gistValue)) {
-			if (gistField) {
-				this.highlightField(gistField);
+			issues.push('Repository name is required');
+		} else if (!this.isValidRepoName(repoValue)) {
+			if (repoField) {
+				this.highlightField(repoField);
 			}
-			issues.push('Gist ID format is invalid (should be 32-character hexadecimal string)');
+			issues.push('Repository name format is invalid (1-100 chars, alphanumeric, hyphens, underscores, and dots)');
 		}
 		
 		// Show helpful message
@@ -458,13 +458,13 @@ class GistLoader {
 	}
 
 	/**
-	 * Validate gist ID format (GitHub gist IDs are 32-character hexadecimal strings)
+	 * Validate repository name format (GitHub repo names)
 	 */
-	isValidGistId(gistId) {
-		if (!gistId || typeof gistId !== 'string') return false;
-		// GitHub gist IDs are typically 32 characters, all lowercase hex
-		const gistPattern = /^[a-f0-9]{32}$/i;
-		return gistPattern.test(gistId.trim());
+	isValidRepoName(repoName) {
+		if (!repoName || typeof repoName !== 'string') return false;
+		// GitHub repo names: 1-100 chars, alphanumeric, hyphens, underscores, dots
+		const repoPattern = /^[a-zA-Z0-9._-]{1,100}$/;
+		return repoPattern.test(repoName.trim());
 	}
 
 	/**
@@ -483,12 +483,12 @@ class GistLoader {
 	 */
 	areRequiredFieldsFilled() {
 		const ownerField = document.getElementById('owner');
-		const gistField = document.getElementById('gist');
+		const repoField = document.getElementById('repo');
 		
 		const ownerValue = ownerField ? ownerField.value.trim() : '';
-		const gistValue = gistField ? gistField.value.trim() : '';
+		const repoValue = repoField ? repoField.value.trim() : '';
 		
-		return this.isValidUsername(ownerValue) && this.isValidGistId(gistValue);
+		return this.isValidUsername(ownerValue) && this.isValidRepoName(repoValue);
 	}
 
 	/**
@@ -497,7 +497,7 @@ class GistLoader {
 	updateButtonStates() {
 		const loadBtn = document.getElementById('load-btn');
 		const copyBtn = document.getElementById('copy-url-btn');
-		const form = document.getElementById('gist-form');
+		const form = document.getElementById('repo-form');
 		const isValid = form ? form.checkValidity() : false;
 		
 		if (loadBtn) {
@@ -526,14 +526,14 @@ class GistLoader {
 		
 		// Add input event listeners to required fields
 		const ownerField = document.getElementById('owner');
-		const gistField = document.getElementById('gist');
+		const repoField = document.getElementById('repo');
 		
 		if (ownerField) {
 			ownerField.addEventListener('input', () => this.updateButtonStates());
 		}
 		
-		if (gistField) {
-			gistField.addEventListener('input', () => this.updateButtonStates());
+		if (repoField) {
+			repoField.addEventListener('input', () => this.updateButtonStates());
 		}
 	}
 
@@ -629,23 +629,23 @@ class GistLoader {
 	 * Update the styling of all select elements based on their values
 	 */
 	updateAllSelectStyling() {
-		const selects = document.querySelectorAll('.gist-form-container select');
+		const selects = document.querySelectorAll('.repo-form-container select');
 		
 		selects.forEach(select => {
 			this.updateSingleSelectStyling(select);
 		});
 	}	/**
-	 * Initialize the gist loader
+	 * Initialize the markdown loader
 	 */
 	initialize() {
 		this.params = this.getUrlParams();
 		
 		console.log('Params:', this.params);
-		console.log('Has owner and gist:', !!(this.params.owner && this.params.gist));
+		console.log('Has owner and repo:', !!(this.params.owner && this.params.repo));
 		console.log('Load parameter:', this.params.load);
 		
 		// Check if we should force form display
-		const shouldShowForm = this.params.load === 'false' || !this.params.owner || !this.params.gist;
+		const shouldShowForm = this.params.load === 'false' || !this.params.owner || !this.params.repo;
 		
 		if (shouldShowForm) {
 			this.showForm();
@@ -656,4 +656,4 @@ class GistLoader {
 }
 
 // Expose globally for usage
-window.GistLoader = GistLoader;
+window.MarkdownLoader = MarkdownLoader;

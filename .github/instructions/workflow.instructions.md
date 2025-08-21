@@ -59,7 +59,7 @@ This repository uses the `gh-tt` GitHub CLI extension for a lean, quality-first 
 ### Important paths (always use root-relative paths)
 
 - CSS: `/dist/theme/`, `/dist/reveal.css`
-- JavaScript: `/dist/reveal.js`, `/js/gistloader.js`  
+- JavaScript: `/dist/reveal.js`, `/js/markdownloader.js`  
 - Plugins: `/plugin/markdown/`, `/plugin/highlight/`
 
 ### Why root-relative paths
@@ -93,7 +93,7 @@ This repository uses the `gh-tt` GitHub CLI extension for a lean, quality-first 
 ### Theme switching
 
 - Always update theme when URL parameter provided (don't check against defaults)
-- GistLoader should honor URL params regardless of default values
+- MarkdownLoader should honor URL params regardless of default values
 
 ### Path issues
 

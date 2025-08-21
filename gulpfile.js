@@ -196,13 +196,13 @@ gulp.task('css-core', () => gulp.src(['site/css/reveal.scss'])
     .pipe(header(cssLicense))
     .pipe(gulp.dest('./site/dist')))
 
-gulp.task('css-gistloader', () => gulp.src(['site/css/gistloader.scss'])
+gulp.task('css-markdownloader', () => gulp.src(['site/css/markdownloader.scss'])
     .pipe(compileSass())
     .pipe(autoprefixer())
     .pipe(minify({compatibility: 'ie9'}))
     .pipe(gulp.dest('./site/dist')))
 
-gulp.task('css', gulp.parallel('css-themes', 'css-core', 'css-gistloader'))
+gulp.task('css', gulp.parallel('css-themes', 'css-core', 'css-markdownloader'))
 
 gulp.task('qunit', () => {
 

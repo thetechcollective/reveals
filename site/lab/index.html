@@ -7,7 +7,7 @@
 		<title>reveal.js - Markdown Example</title>
 
 		<link rel="stylesheet" href="/dist/reveal.css">
-		<link rel="stylesheet" href="/dist/theme/white.css" id="theme">
+		<link rel="stylesheet" href="/dist/theme/solarized.css" id="theme">
         <link rel="stylesheet" href="/plugin/highlight/monokai.css">
 	</head>
 
@@ -18,7 +18,8 @@
 			<div class="slides">
 
                 <!-- Use external markdown resource, separate slides by three newlines; vertical slides by two newlines -->
-                <section data-markdown="markdown.md" data-separator="^<!--section-->" data-separator-vertical="^<!--slide-->"></section>
+                <section data-markdown="presentation.md" data-separator="\n\n---\n---\n\n" data-separator-vertical="\n\n---\n\n"></section>
+			</div>
 		</div>
 
 		<script src="/dist/reveal.js"></script>
