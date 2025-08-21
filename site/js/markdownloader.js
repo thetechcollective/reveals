@@ -371,6 +371,7 @@ class MarkdownLoader {
 		
 		const rawMarkdown = await response.text();
 		console.log('Raw markdown fetched, length:', rawMarkdown.length);
+		console.log('Raw markdown first 500 chars:', rawMarkdown.substring(0, 500));
 		
 		// Parse frontmatter
 		const { frontmatter, content } = this.parseFrontmatter(rawMarkdown);
@@ -412,13 +413,16 @@ class MarkdownLoader {
 	}
 
 	/**
-	 * Simple YAML parser for frontmatter (handles basic key-value pairs)
+	 * Simple YAML parser for frontmatter (handles basic key-value pairs and simple nested objects)
 	 */
 	parseSimpleYaml(yamlText) {
 		const result = {};
 		const lines = yamlText.split('\n');
+		let currentContext = result;
+		let currentKey = null;
 		
-		for (const line of lines) {
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
 			const trimmed = line.trim();
 			if (!trimmed || trimmed.startsWith('#')) continue;
 			
@@ -428,13 +432,44 @@ class MarkdownLoader {
 			const key = trimmed.slice(0, colonIndex).trim();
 			let value = trimmed.slice(colonIndex + 1).trim();
 			
-			// Remove quotes if present
-			if ((value.startsWith('"') && value.endsWith('"')) || 
-			    (value.startsWith("'") && value.endsWith("'"))) {
-				value = value.slice(1, -1);
+			// Check if this is a nested object (value is empty and next lines are indented)
+			if (!value && i + 1 < lines.length) {
+				const nextLine = lines[i + 1];
+				if (nextLine.startsWith('  ') || nextLine.startsWith('\t')) {
+					// This is a nested object, create it and parse nested items
+					result[key] = {};
+					currentContext = result[key];
+					currentKey = key;
+					continue;
+				}
 			}
 			
-			result[key] = value;
+			// Check if this line is indented (nested property)
+			if ((line.startsWith('  ') || line.startsWith('\t')) && currentContext !== result) {
+				// This is a nested property
+				let nestedKey = key;
+				let nestedValue = value;
+				
+				// Remove quotes if present
+				if ((nestedValue.startsWith('"') && nestedValue.endsWith('"')) || 
+				    (nestedValue.startsWith("'") && nestedValue.endsWith("'"))) {
+					nestedValue = nestedValue.slice(1, -1);
+				}
+				
+				currentContext[nestedKey] = nestedValue;
+			} else {
+				// This is a top-level property, reset context
+				currentContext = result;
+				currentKey = null;
+				
+				// Remove quotes if present
+				if ((value.startsWith('"') && value.endsWith('"')) || 
+				    (value.startsWith("'") && value.endsWith("'"))) {
+					value = value.slice(1, -1);
+				}
+				
+				result[key] = value;
+			}
 		}
 		
 		return result;
@@ -514,6 +549,21 @@ class MarkdownLoader {
 				urlParams.set('theme', theme);
 				hasChanges = true;
 				console.log('Added theme from frontmatter:', theme);
+			}
+		}
+		
+		// Add separators if specified and not already set
+		if (frontmatter.separators) {
+			if (frontmatter.separators.section && !urlParams.has('sectionSeparator')) {
+				urlParams.set('sectionSeparator', frontmatter.separators.section);
+				hasChanges = true;
+				console.log('Added sectionSeparator from frontmatter:', frontmatter.separators.section);
+			}
+			
+			if (frontmatter.separators.slide && !urlParams.has('slideSeparator')) {
+				urlParams.set('slideSeparator', frontmatter.separators.slide);
+				hasChanges = true;
+				console.log('Added slideSeparator from frontmatter:', frontmatter.separators.slide);
 			}
 		}
 		
