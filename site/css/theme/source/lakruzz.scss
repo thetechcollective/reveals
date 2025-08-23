@@ -1,0 +1,94 @@
+/**
+ * Lakruzz theme for reveal.js.
+ */
+
+
+// Default mixins and settings -----------------
+@use "sass:color";
+@import "../template/mixins";
+@import "../template/settings";
+// ---------------------------------------------
+
+
+
+// Include theme-specific fonts
+@import url(https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap);
+@import url(https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap);
+
+
+/**
+ * Lakruzz by Lars Kruse
+ * Professional color palette
+ */
+
+// Brand color palette
+$light-grey:   #e0dfdc;
+$dark-grey:    #1f1f23;
+$grey:         #a3a2a0;
+$mint:         #b9d2c3;
+$purple:       #af9eb4;
+$plum:         #64505a;
+$cappuccino:   #b6a798;
+$mustard:      #deb778;
+
+// Variants (lighter shades)
+$light-grey-1: #e8e7e5;
+$light-grey-2: #efefed;
+$light-grey-3: #f7f7f6;
+
+$grey-1:       #57585a;
+$grey-2:       #8f8f91;
+$grey-3:       #c7c7c8;
+
+$mint-1:       #cbddd2;
+$mint-2:       #dce8e1;
+$mint-3:       #edf4f0;
+
+$purple-1:     #c3b6c7;
+$purple-2:     #d7ced9;
+$purple-3:     #af9eb4;
+
+$plum-1:       #8b7c83;
+$plum-2:       #b1a7ac;
+$plum-3:       #d8d3d6;
+
+$cappuccino-1: #c8bdb2;
+$cappuccino-2: #dad3cb;
+$cappuccino-3: #ede9e5;
+
+$mustard-1:    #e6c99a;
+$mustard-2:    #eedbbb;
+$mustard-3:    #f7eddd;
+
+// Override theme settings with brand colors
+$mainFont: 'Raleway', sans-serif;
+$headingFont: 'Oswald', Impact, sans-serif;
+$headingTextTransform: none;
+$mainColor: $grey-1;              // Readable dark grey for body text
+$headingColor: $plum;             // Rich plum for headers
+$headingTextShadow: none;
+$backgroundColor: $light-grey-3;  // Very light grey background (not pure white)
+$linkColor: $plum;                // Rich plum for links (better contrast)
+$linkColorHover: color.scale( $plum, $lightness: -15% );
+$selectionBackgroundColor: $mustard-1;  // Warm mustard for selections
+$selectionColor: $dark-grey;
+
+// Adjusted heading sizes (smaller than default)
+$heading1Size: 2.11em;  // Was 3.77em, now using old H2 size
+$heading2Size: 1.75em;  // Between new H1 (2.11em) and H3 (1.55em)
+$heading3Size: 1.35em;  // Between H2 (1.75em) and H4 (1.00em)
+$heading4Size: 1.00em;  // Keeping H4 as is
+
+$overlayElementBgColor: 31, 31, 35;   // dark-grey RGB
+$overlayElementFgColor: 247, 247, 246;  // light-grey-3 RGB
+
+// Background generator
+// @mixin bodyBackground() {
+// 	@include radial-gradient( rgba($base3,1), rgba(lighten($base3, 20%),1) );
+// }
+
+
+
+// Theme template ------------------------------
+@import "../template/theme";
+// ---------------------------------------------

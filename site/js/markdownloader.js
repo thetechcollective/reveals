@@ -19,7 +19,7 @@ const DEFAULT_CONFIG = {
  */
 const AVAILABLE_THEMES = [
 	'white', 'black', 'league', 'beige', 'sky', 
-	'night', 'serif', 'simple', 'solarized', 'blood', 'moon'
+	'night', 'serif', 'simple', 'solarized', 'blood', 'moon', 'lakruzz'
 ];
 
 /**
