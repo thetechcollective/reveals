@@ -23,6 +23,7 @@
         "/```[\\s\\S]*?```/g",          // block code
         "/`.*?`/g",                     // inline code
         "/<!--.*?-->/g",                // HTML comments
+        "/\\[.*?\\]\\(.*?\\)/g",        // Markdown links
         "/class=[\"'].*?[\"']/",        // class attributes
         "/\\\\\\[[\\s\\S]*?\\\\\\]/g"   //LaTex block
     ],
@@ -38,7 +39,8 @@
         "squezeed",
         "devcontainer",
         "devcontainers",
-        "sdlc"
+        "sdlc",
+        "frontmatter"
     ],
     "ignoreWords": [
         "cspell",

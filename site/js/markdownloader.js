@@ -349,14 +349,59 @@ class MarkdownLoader {
 	/**
 	 * Build GitHub raw URL for resources (images, scripts, etc.)
 	 */
-	buildRepoResourceUrl(owner, repo, filename) {
-		return `https://raw.githubusercontent.com/${owner}/${repo}/main/${filename}`;
+	buildRepoResourceUrl(owner, repo, resourcePath, markdownFile = '') {
+		let finalPath = resourcePath;
+		
+		// Handle parent directory navigation (../)
+		if (resourcePath.startsWith('../')) {
+			// Extract directory from markdown file path
+			const markdownDir = markdownFile.includes('/') ? 
+				markdownFile.substring(0, markdownFile.lastIndexOf('/')) : '';
+			
+			// Split the markdown directory into parts
+			const dirParts = markdownDir ? markdownDir.split('/') : [];
+			
+			// Count and remove ../ segments from resource path
+			let pathParts = resourcePath.split('/');
+			let parentCount = 0;
+			
+			while (pathParts.length > 0 && pathParts[0] === '..') {
+				parentCount++;
+				pathParts.shift(); // Remove the '..' part
+			}
+			
+			// Remove parent count directories from markdown path
+			const adjustedDirParts = dirParts.slice(0, Math.max(0, dirParts.length - parentCount));
+			
+			// Combine adjusted directory with remaining path
+			const remainingPath = pathParts.join('/');
+			finalPath = adjustedDirParts.length > 0 ? 
+				adjustedDirParts.join('/') + '/' + remainingPath : 
+				remainingPath;
+				
+			console.log(`Parent navigation: ${resourcePath} from ${markdownFile} -> ${finalPath}`);
+		} else if (!resourcePath.startsWith('/')) {
+			// Handle relative paths (./ or no prefix)
+			const cleanPath = resourcePath.startsWith('./') ? resourcePath.substring(2) : resourcePath;
+			
+			// Extract directory from markdown file path
+			const markdownDir = markdownFile.includes('/') ? 
+				markdownFile.substring(0, markdownFile.lastIndexOf('/') + 1) : '';
+			
+			// Combine markdown directory with resource path
+			finalPath = markdownDir + cleanPath;
+		} else {
+			// Handle absolute paths (/) - remove leading slash
+			finalPath = resourcePath.substring(1);
+		}
+		
+		return `https://raw.githubusercontent.com/${owner}/${repo}/main/${finalPath}`;
 	}
 
 	/**
 	 * Fetch markdown content from repository and precompile it
 	 */
-	async fetchAndPrecompileMarkdown(repoUrl, owner, repo) {
+	async fetchAndPrecompileMarkdown(repoUrl, owner, repo, filename = '') {
 		console.log('Fetching markdown from:', repoUrl);
 		
 		// Add cache-busting timestamp to prevent browser caching
@@ -381,7 +426,7 @@ class MarkdownLoader {
 		this.applyFrontmatter(frontmatter);
 		
 		// Process relative paths in the markdown content
-		const processedMarkdown = this.processRelativePaths(content, owner, repo);
+		const processedMarkdown = this.processRelativePaths(content, owner, repo, filename);
 		console.log('Markdown processed, length:', processedMarkdown.length);
 		
 		return processedMarkdown;
@@ -582,34 +627,82 @@ class MarkdownLoader {
 	 * Process relative paths in markdown content
 	 * Converts ./path references to full GitHub URLs
 	 */
-	processRelativePaths(markdown, owner, repo) {
-		console.log('Processing relative paths for repo:', `${owner}/${repo}`);
+	processRelativePaths(markdown, owner, repo, filename = '') {
+		console.log('Processing relative paths for repo:', `${owner}/${repo}`, 'file:', filename);
 		
-		// Process markdown image syntax: ![alt](./path)
+		// Process markdown image syntax: ![alt](./path), ![alt](/path), and ![alt](../path)
 		let processed = markdown.replace(/!\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, alt, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
-			console.log(`Replacing image: ${match} -> ![${alt}](${fullUrl})`);
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
+			console.log(`Replacing relative image: ${match} -> ![${alt}](${fullUrl})`);
 			return `![${alt}](${fullUrl})`;
 		});
 		
-		// Process markdown link syntax: [text](./path)
+		processed = processed.replace(/!\[([^\]]*)\]\(\/([^)]+)\)/g, (match, alt, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
+			console.log(`Replacing absolute image: ${match} -> ![${alt}](${fullUrl})`);
+			return `![${alt}](${fullUrl})`;
+		});
+		
+		processed = processed.replace(/!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, alt, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
+			console.log(`Replacing parent image: ${match} -> ![${alt}](${fullUrl})`);
+			return `![${alt}](${fullUrl})`;
+		});
+		
+		// Process markdown link syntax: [text](./path), [text](/path), and [text](../path)
 		processed = processed.replace(/\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, text, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
-			console.log(`Replacing link: ${match} -> [${text}](${fullUrl})`);
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
+			console.log(`Replacing relative link: ${match} -> [${text}](${fullUrl})`);
 			return `[${text}](${fullUrl})`;
 		});
 		
-		// Process HTML src attributes (img, script, etc.): src="./path"
+		processed = processed.replace(/\[([^\]]*)\]\(\/([^)]+)\)/g, (match, text, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
+			console.log(`Replacing absolute link: ${match} -> [${text}](${fullUrl})`);
+			return `[${text}](${fullUrl})`;
+		});
+		
+		processed = processed.replace(/\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, text, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
+			console.log(`Replacing parent link: ${match} -> [${text}](${fullUrl})`);
+			return `[${text}](${fullUrl})`;
+		});
+		
+		// Process HTML src attributes: src="./path", src="/path", and src="../path"
 		processed = processed.replace(/\bsrc="\.\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
-			console.log(`Replacing src: ${match} -> src="${fullUrl}"`);
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
+			console.log(`Replacing relative src: ${match} -> src="${fullUrl}"`);
 			return `src="${fullUrl}"`;
 		});
 		
-		// Process HTML href attributes: href="./path"
+		processed = processed.replace(/\bsrc="\/([^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
+			console.log(`Replacing absolute src: ${match} -> src="${fullUrl}"`);
+			return `src="${fullUrl}"`;
+		});
+		
+		processed = processed.replace(/\bsrc="(\.\.\/[^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
+			console.log(`Replacing parent src: ${match} -> src="${fullUrl}"`);
+			return `src="${fullUrl}"`;
+		});
+		
+		// Process HTML href attributes: href="./path", href="/path", and href="../path"
 		processed = processed.replace(/\bhref="\.\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path);
-			console.log(`Replacing href: ${match} -> href="${fullUrl}"`);
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
+			console.log(`Replacing relative href: ${match} -> href="${fullUrl}"`);
+			return `href="${fullUrl}"`;
+		});
+		
+		processed = processed.replace(/\bhref="\/([^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
+			console.log(`Replacing absolute href: ${match} -> href="${fullUrl}"`);
+			return `href="${fullUrl}"`;
+		});
+		
+		processed = processed.replace(/\bhref="(\.\.\/[^"]+)"/g, (match, path) => {
+			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
+			console.log(`Replacing parent href: ${match} -> href="${fullUrl}"`);
 			return `href="${fullUrl}"`;
 		});
 		
@@ -626,7 +719,7 @@ class MarkdownLoader {
 		
 		try {
 			// Fetch and precompile the markdown content
-			const processedMarkdown = await this.fetchAndPrecompileMarkdown(repoUrl, params.owner, params.repo);
+			const processedMarkdown = await this.fetchAndPrecompileMarkdown(repoUrl, params.owner, params.repo, params.file || DEFAULT_CONFIG.file);
 			
 			// Re-parse params in case frontmatter updated them
 			params = this.getUrlParams();
