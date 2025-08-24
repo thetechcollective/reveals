@@ -133,24 +133,20 @@ class MarkdownLoader {
 			<div class="repo-form-container">
 				<h1>🎯 reveal.js Markdown Loader</h1>
 				<p>Create instant presentations from GitHub repositories</p>
-				
-				<div class="form-note">
-					<strong>Note:</strong> GitHub caches repository raw URLs. Changes may take a few minutes to appear. For immediate updates trigger a cache refresh by simply adding an arbitrary parameter to the url (e.g., <code>?v=2</code>).
-				</div>
 
 				<form id="repo-form">
 					<div class="form-group">
-						<label for="owner" class="required">GitHub Username/Organization</label>
+						<label for="owner" class="required"><code>owner</code> – GitHub Username/Organization</label>
 						<input type="text" id="owner" name="owner" placeholder="e.g., lakruzz" value="${params.owner || ''}" required>
 					</div>
 
 					<div class="form-group">
-						<label for="repo" class="required">Repository Name</label>
+						<label for="repo" class="required"><code>repo</code> — Repository Name</label>
 						<input type="text" id="repo" name="repo" placeholder="e.g., my-presentation" value="${params.repo || ''}" required>
 					</div>
 
 					<div class="form-group">
-						<label for="file">Filename</label>
+						<label for="file"><code>file</code> — File name including path, relative to the repository root</label>
 						<input type="text" id="file" name="file" placeholder="presentation.md" value="${params.file && params.file !== DEFAULT_CONFIG.file ? params.file : ''}">
 						<small style="color: #666; font-size: 12px;">A reveals flavored MarkDown file (Leave empty to use default)</small>
 					</div>

@@ -30,6 +30,8 @@ $purple:       #af9eb4;
 $plum:         #64505a;
 $cappuccino:   #b6a798;
 $mustard:      #deb778;
+$terracotta:   #8b5a4a;    // Dusty, earthy red-brown
+$almue-blue:   #3673c1;    // Scandinavian almue blue - dusty yet clear
 
 // Variants (lighter shades)
 $light-grey-1: #e8e7e5;
@@ -60,15 +62,23 @@ $mustard-1:    #e6c99a;
 $mustard-2:    #eedbbb;
 $mustard-3:    #f7eddd;
 
+$terracotta-1: #a47868;
+$terracotta-2: #bd9587;
+$terracotta-3: #d6b3a6;     
+
+$almue-blue-1:  #5a8dd4;
+$almue-blue-2:  #7ea6e0;
+$almue-blue-3:  #a2bfec;
+
 // Override theme settings with brand colors
 $mainFont: 'Raleway', sans-serif;
 $headingFont: 'Oswald', Impact, sans-serif;
 $headingTextTransform: none;
-$mainColor: $grey-1;              // Readable dark grey for body text
-$headingColor: $plum;             // Rich plum for headers
+$mainColor: $grey-1;              
+$headingColor: $plum;             
 $headingTextShadow: none;
-$backgroundColor: $light-grey-3;  // Very light grey background (not pure white)
-$linkColor: $plum;                // Rich plum for links (better contrast)
+$backgroundColor: $light-grey-3;        // Very light grey background (not pure white)
+$linkColor: $almue-blue;                // Rich plum for links (better contrast)
 $linkColorHover: color.scale( $plum, $lightness: -15% );
 $selectionBackgroundColor: $mustard-1;  // Warm mustard for selections
 $selectionColor: $dark-grey;

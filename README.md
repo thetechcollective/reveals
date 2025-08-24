@@ -2,18 +2,22 @@
 title: "Reveals - Markdown Presentation Loader"
 description: "Create instant reveal.js presentations from GitHub repositories with frontmatter support"
 author: "The Tech Collective"
-theme: "white"
-transition: "slide"
+theme: "lakruzz"
+transition: "fade"
 separators:
   section: '\n\n---\n---\n\n'
   slide: '\n\n---\n\n'
 ---
 
-### 🎯 Pure MarkDown Reveals
+## 🎯 Pure MarkDown Reveals
 
 This project builds on [reveal.js](https://revealjs.com/)
 
-The purpose it to go MarkDown crazy - and allow _all_ the nice reveal.js features to be available from simple markdown files.
+The purpose it _separate what from how_ and to go `MarkDown` crazy 🤪 - and allow _all_ the nice reveal.js features to be available from simple markdown files.
+
+---
+
+### ⬇️ MarkDown only
 
 All you have to do is to create a reveal-flavoured markdown with your slides. Store it in a public GitHub repository, and load it with the MarkDownLoader
 
@@ -21,11 +25,12 @@ All you have to do is to create a reveal-flavoured markdown with your slides. St
 
 ## ✨ Features
 
-- 📁 **Load from any public GitHub repository**
-- 🎨 **Frontmatter configuration support**
-- 🖼️ **Support for relative paths to local self-hosted resources**
-- 🎬 **Theme and transition customization**
-- 📱 **Everything else that [reveal.js](https://revealjs.com/) promised**
+📁 Load from any public GitHub repository<br/>
+🎨 Frontmatter configuration support<br/>
+🖼️ Expands relative paths to local self-hosted resources<br/>
+🎬 Theme and transition customization<br/>
+💯 Everything else that [reveal.js](https://revealjs.com/) promised<br/>
+<!-- .element style="text-align:left; font-size:37px" -->
 
 ---
 ---
@@ -36,30 +41,33 @@ All you have to do is to create a reveal-flavoured markdown with your slides. St
 
 ## Basic Usage
 
-1. **Navigate to the MarkDownLoader**
-    [reveals.thetechcollective.dev/markdownloader](https://reveals.thetechcollective.dev/markdownloader/)
-2. **Fill in repository details**
-   - **GitHub username/organization** (required)
-   - **Repository name** (required)  
-   - Markdown filename (optional, defaults to `presentation.md`)
-3. There are more settings available, but they are all optional and can be configured in the frontmatter of your markdown file
-4. **Click Load** 🎉
+1. Open the free, Open Source **MarkDownLoader**<br/>
+    🔗 [https://reveals.thetechcollective.dev/markdownloader](https://reveals.thetechcollective.dev/markdownloader/)<!-- .element style="font-size:30px" -->
+2. ✏️ Fill in details:
+   - **`owner`** GitHub username/organization
+   - **`repo `** Repository name
+   - **`file `** Markdown filename
+3. 🎁 There are more settings available, but they are all optional
+4. 🚀 Click **Load** 
+
+<!-- .element style="text-align:left; font-size:30px" -->
 
 ---
 
 ## URL parameters
 
-YOu can also load presentations directly by specifying URL parameters:
+You can also load presentations directly by specifying URL parameters:
 
-```shell
-owner=USERNAME  #required
-repo=REPOSITORY #required
-file=FILENAME   # optional, may including subfolders, defaults to presentation.md
+```python
+owner=USERNAME  # required
+repo=REPOSITORY # required
+file=FILENAME   # optional, may including subfolders,
+                # defaults to 'presentation.md'
 ```
 
-**Example:**
+### Example:
 
-[`/markdownloader/?owner=thetechcolelctive&repo=reveals&file=README.md`](https://reveals.thetechcollective.dev/markdownloader/?owner=thetechcollective&repo=reveals&file=README.md)
+[`https://reveals.thetechcollective.dev/markdownloader/?owner=thetechcollctive&repo=reveals&file=README.md`](https://reveals.thetechcollective.dev/markdownloader/?owner=thetechcollective&repo=reveals&file=README.md) <!-- .element style="text-align:left; font-size:30px" -->
 
 ---
 ---
@@ -68,73 +76,116 @@ file=FILENAME   # optional, may including subfolders, defaults to presentation.m
 
 ---
 
+## 📝 Frontmatter
+
+Add frontmatter to your MarkDown, to instruct the `MarkDownLoader` to use your preferences.
+
+- Allows you to set the `title`, `description` and `author` of the loaded page
+- Allows you to preload the URL parameters, so you can distribute cleaner URL's to you audience
+
+---
+
 ## Supported Fields
 
 ```yaml
 ---
-title: "My Presentation"
-description: "A great presentation"
-author: "Your Name"
-theme: "black"
-transition: "fade"
-separators:
-  section: '\n\n---\n---\n\n'
-  slide: '\n\n---\n\n'
+  title:       "My Presentation"
+  description: "A great presentation"
+  author:      "Your Name"
+  theme:       "black"
+  transition:  "slide"
+  separators:
+    section:   '\n\n---\n---\n\n'
+    slide:     '\n\n---\n\n'
 ---
 ```
-
----
 
 ---
 
 ## Metadata Fields
 
-The following fields are supported for metadata
-The values will be used to populate the HTML `<head>` section:
-
-| Field | Purpose | Example |
-|-------|---------|---------|
-| `title` | Page title | `"My Presentation"` |
-| `description` | Meta description | `"About my topic"` |
-| `author` | Meta author | `"Jane Doe"` |
-
----
-
-## Theme Options
-
-Available themes:
-
-- `white` (default) - `black` - `league`
-- `sky` - `beige` - `simple` - `serif`
-- `blood` - `night` - `moon` - `solarized`
+The following frontmatter fields are supported in your markdown file for metadata
 
 ```yaml
-theme: "moon"
+---
+  title:       "MarkDownLoader"
+  description: "Your beautiful presentations ...as pure MarkDown"
+  author:      "Lakruzz — Lars Kruse"
+---
 ```
 
+The fields will be used to populate the HTML `<head>` section:
+
+```html
+<head>
+  <title>MarkDownLoader</title>
+  <meta name="description" content="Your beautiful presentations ...as pure MarkDown">
+  <meta name="author" content="Lakruzz — Lars Kruse">
+</head>
+```
+<!-- .element style="text-align:left; font-size:15px" -->
+
 ---
 
-## Transition Options
+## Appearance – Themes
 
-Available transitions:
+The following frontmatter fields are supported in your markdown file and will impact the appearance
 
-- `none` - `fade` - `slide` (default)
-- `convex` - `concave` - `zoom`
-
-```yaml
-transition: "fade"
+```yaml[2]
+---
+  theme:       "black" #default
+  transition:  "slide" #default
+---
 ```
 
+#### Available themes:
+
+`white` - `black` - `league` - `sky` - `beige` - `simple` - `serif` -`blood` - `night` - `moon` - `solarized` - `lakruzz`
+
+
 ---
 
-## Custom Separators
+## Appearance - Transitions
 
-Override default slide separators:
+```yaml[3]
+---
+  theme:       "black" #default
+  transition:  "slide" #default
+---
+```
+
+#### Available transitions:
+
+`none` - `fade` - `slide` - `convex` - `concave` - `zoom`
+
+---
+
+## Separators
+
+Separators are used to define what marks a new section (horizontal) and the individual slides (vertical).
 
 ```yaml
-separators:
-  section: '\n\n---\n---\n\n'  # Horizontal slides
-  slide: '\n\n---\n\n'         # Vertical slides
+---
+  separators:
+    section: '\n\n---\n---\n\n'  # default for horizontal slides
+    slide:   '\n\n---\n\n'       # default for vertical slides
+---
+```
+
+Using two or one markdown rulers (`---`) respectively, has the delicious side-effect that GitHub can render your MarkDown with dividers too.
+
+---
+
+## Separators - example
+
+Here's an example that uses `html` comments as markers.
+
+```yaml
+---
+  separators:
+    section: '^<!--section-->'  
+    slide:   '^<!--slide-->' 
+---
 ```
 
 ---
