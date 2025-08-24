@@ -58,7 +58,8 @@ class MarkdownLoader {
 			transition: params.get('transition'),
 			sectionSeparator: params.get('sectionSeparator'),
 			slideSeparator: params.get('slideSeparator'),
-			load: params.get('load')
+			load: params.get('load'),
+			local: params.get('local')
 		};
 	}
 
@@ -434,6 +435,40 @@ class MarkdownLoader {
 	}
 
 	/**
+	 * Fetch and precompile local markdown file (no GitHub path processing)
+	 */
+	async fetchAndPrecompileLocalMarkdown(localUrl, filename = '') {
+		console.log('Fetching local markdown from:', localUrl);
+		
+		// Add cache-busting timestamp to prevent browser caching
+		const cacheBustUrl = localUrl + '?_cb=' + Date.now();
+		console.log('Cache-busted URL:', cacheBustUrl);
+		
+		const response = await fetch(cacheBustUrl);
+		
+		if (!response.ok) {
+			throw new Error(`Failed to fetch local markdown: ${response.status} ${response.statusText}`);
+		}
+		
+		const rawMarkdown = await response.text();
+		console.log('Raw local markdown fetched, length:', rawMarkdown.length);
+		console.log('Raw local markdown first 500 chars:', rawMarkdown.substring(0, 500));
+		
+		// Parse frontmatter
+		const { frontmatter, content } = this.parseFrontmatter(rawMarkdown);
+		console.log('Frontmatter parsed:', frontmatter);
+		
+		// Apply frontmatter to page
+		this.applyFrontmatter(frontmatter);
+		
+		// Process local relative paths in the markdown content
+		const processedMarkdown = this.processLocalPaths(content, filename);
+		console.log('Local markdown processed with path resolution, length:', processedMarkdown.length);
+		
+		return processedMarkdown;
+	}
+
+	/**
 	 * Parse YAML frontmatter from markdown content
 	 */
 	parseFrontmatter(markdown) {
@@ -711,6 +746,87 @@ class MarkdownLoader {
 	}
 
 	/**
+	 * Process relative paths for local files
+	 */
+	processLocalPaths(markdown, filename = '') {
+		console.log('Processing local paths for file:', filename);
+		
+		// Extract directory from filename (e.g., "lab/presentation.md" -> "lab/")
+		const fileDir = filename.includes('/') ? 
+			filename.substring(0, filename.lastIndexOf('/') + 1) : '';
+		
+		// Process markdown image syntax: ![alt](./path) and ![alt](../path)
+		let processed = markdown.replace(/!\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, alt, path) => {
+			const localPath = `/${fileDir}${path}`;
+			console.log(`Replacing local relative image: ${match} -> ![${alt}](${localPath})`);
+			return `![${alt}](${localPath})`;
+		});
+		
+		processed = processed.replace(/!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, alt, path) => {
+			const localPath = this.resolveLocalPath(path, fileDir);
+			console.log(`Replacing local parent image: ${match} -> ![${alt}](${localPath})`);
+			return `![${alt}](${localPath})`;
+		});
+		
+		// Process markdown link syntax: [text](./path) and [text](../path)
+		processed = processed.replace(/\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, text, path) => {
+			const localPath = `/${fileDir}${path}`;
+			console.log(`Replacing local relative link: ${match} -> [${text}](${localPath})`);
+			return `[${text}](${localPath})`;
+		});
+		
+		processed = processed.replace(/\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, text, path) => {
+			const localPath = this.resolveLocalPath(path, fileDir);
+			console.log(`Replacing local parent link: ${match} -> [${text}](${localPath})`);
+			return `[${text}](${localPath})`;
+		});
+		
+		// Process HTML src attributes: src="./path" and src="../path"
+		processed = processed.replace(/\bsrc="\.\/([^"]+)"/g, (match, path) => {
+			const localPath = `/${fileDir}${path}`;
+			console.log(`Replacing local relative src: ${match} -> src="${localPath}"`);
+			return `src="${localPath}"`;
+		});
+		
+		processed = processed.replace(/\bsrc="(\.\.\/[^"]+)"/g, (match, path) => {
+			const localPath = this.resolveLocalPath(path, fileDir);
+			console.log(`Replacing local parent src: ${match} -> src="${localPath}"`);
+			return `src="${localPath}"`;
+		});
+		
+		return processed;
+	}
+
+	/**
+	 * Resolve local paths with parent directory navigation
+	 */
+	resolveLocalPath(resourcePath, fileDir) {
+		// Split the file directory into parts
+		const dirParts = fileDir ? fileDir.split('/').filter(part => part) : [];
+		
+		// Count and remove ../ segments from resource path
+		let pathParts = resourcePath.split('/');
+		let parentCount = 0;
+		
+		while (pathParts.length > 0 && pathParts[0] === '..') {
+			parentCount++;
+			pathParts.shift(); // Remove the '..' part
+		}
+		
+		// Remove parent count directories from file path
+		const adjustedDirParts = dirParts.slice(0, Math.max(0, dirParts.length - parentCount));
+		
+		// Combine adjusted directory with remaining path
+		const remainingPath = pathParts.join('/');
+		const finalPath = adjustedDirParts.length > 0 ? 
+			adjustedDirParts.join('/') + '/' + remainingPath : 
+			remainingPath;
+			
+		console.log(`Local parent navigation: ${resourcePath} from ${fileDir} -> /${finalPath}`);
+		return `/${finalPath}`;
+	}
+
+	/**
 	 * Initialize reveal.js presentation with repository content
 	 */
 	async initializePresentation(params) {
@@ -776,6 +892,86 @@ class MarkdownLoader {
 			`;
 			
 			document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
+			
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				hash: true,
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+			});
+		}
+	}
+
+	/**
+	 * Initialize reveal.js presentation with local file content
+	 */
+	async initializeLocalPresentation(params) {
+		if (!params.file) {
+			throw new Error('Local mode requires a file parameter');
+		}
+
+		// Build local file URL (relative to site root)
+		const localUrl = `/${params.file}`;
+		console.log('Local file URL:', localUrl);
+		
+		try {
+			// Fetch and precompile the local markdown content
+			const processedMarkdown = await this.fetchAndPrecompileLocalMarkdown(localUrl, params.file);
+			
+			// Re-parse params in case frontmatter updated them
+			params = this.getUrlParams();
+			
+			// Update stylesheets based on parameters (including potential frontmatter updates)
+			this.updateStylesheets(params.theme, params.highlightStyle);
+			
+			// Create the section element with processed markdown content
+			const slidesContainer = document.getElementById('slides-container');
+			slidesContainer.innerHTML = `
+				<section data-markdown data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}">
+					<textarea data-template>${processedMarkdown}</textarea>
+				</section>
+			`;
+			
+			// Update page title only if it wasn't set by frontmatter
+			if (document.title === 'reveal.js - Markdown Loader' || 
+				document.title === 'reveal.js - The HTML Presentation Framework' ||
+				document.title.includes('Markdown Loader')) {
+				document.title = `reveal.js - ${params.file}`;
+			}
+			
+			// Build the reveal configuration
+			const revealConfig = {
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				hash: true,
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+			};
+			
+			// Apply transition if specified
+			if (params.transition && AVAILABLE_TRANSITIONS.includes(params.transition.toLowerCase())) {
+				revealConfig.transition = params.transition.toLowerCase();
+				console.log('Using transition from URL:', revealConfig.transition);
+			}
+			
+			// Initialize Reveal.js AFTER inserting the content
+			Reveal.initialize(revealConfig);
+			
+		} catch (error) {
+			console.error('Error loading and processing local markdown:', error);
+			
+			// Fallback to direct loading if precompilation fails
+			this.updateStylesheets(params.theme, params.highlightStyle);
+			
+			const slidesContainer = document.getElementById('slides-container');
+			slidesContainer.innerHTML = `
+				<section data-markdown="${localUrl}" data-separator="${params.sectionSeparator || DEFAULT_CONFIG.sectionSeparator}" data-separator-vertical="${params.slideSeparator || DEFAULT_CONFIG.slideSeparator}"></section>
+			`;
+			
+			document.title = `reveal.js - ${params.file}`;
 			
 			Reveal.initialize({
 				controls: true,
@@ -1062,14 +1258,26 @@ class MarkdownLoader {
 		console.log('Params:', this.params);
 		console.log('Has owner and repo:', !!(this.params.owner && this.params.repo));
 		console.log('Load parameter:', this.params.load);
+		console.log('Local parameter:', this.params.local);
 		
-		// Check if we should force form display
-		const shouldShowForm = this.params.load === 'false' || !this.params.owner || !this.params.repo;
+		// Precedence logic:
+		// 1. If local=true → Local mode (bypass GUI, work with local files)
+		// 2. Else if load=false → Force GUI mode  
+		// 3. Else if all required params present → Direct load mode
+		// 4. Else → GUI mode
 		
-		if (shouldShowForm) {
-			this.showForm();
+		if (this.params.local === 'true') {
+			console.log('Local mode enabled - bypassing GUI');
+			await this.initializeLocalPresentation(this.params);
 		} else {
-			await this.initializePresentation(this.params);
+			// Check if we should force form display
+			const shouldShowForm = this.params.load === 'false' || !this.params.owner || !this.params.repo;
+			
+			if (shouldShowForm) {
+				this.showForm();
+			} else {
+				await this.initializePresentation(this.params);
+			}
 		}
 	}
 }
