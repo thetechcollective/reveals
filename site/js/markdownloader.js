@@ -8,10 +8,10 @@
  */
 const DEFAULT_CONFIG = {
 	file: 'presentation.md',
-	theme: 'white',
+	theme: 'lakruzz',
 	highlightStyle: 'monokai',
-	sectionSeparator: '^<!--section-->',
-	slideSeparator: '^<!--slide-->'
+	sectionSeparator: '\n\n---\n---\n\n',
+	slideSeparator: `\n\n---\n\n`
 };
 
 /**
@@ -78,9 +78,10 @@ class MarkdownLoader {
 			console.log('themeEl:', themeEl);
 			console.log('DEFAULT_CONFIG.theme:', DEFAULT_CONFIG.theme);
 			
-			// Always update theme if provided via URL parameter
-			if (themeEl && theme) {
-				const newThemeUrl = `/dist/theme/${theme}.css`;
+			// Always update theme - use provided theme or fall back to default
+			if (themeEl) {
+				const themeToUse = theme || DEFAULT_CONFIG.theme;
+				const newThemeUrl = `/dist/theme/${themeToUse}.css`;
 				console.log('Updating theme to:', newThemeUrl);
 				themeEl.href = newThemeUrl;
 				console.log('Theme element href after update:', themeEl.href);
@@ -101,7 +102,7 @@ class MarkdownLoader {
 	 * Generate the theme options HTML
 	 */
 	generateThemeOptions(selectedTheme = null) {
-		const options = ['<option value="">Use default (White)</option>'];
+		const options = ['<option value="">Use default</option>'];
 		
 		return options.concat(AVAILABLE_THEMES.map(theme => {
 			const isSelected = theme === selectedTheme;
@@ -114,7 +115,7 @@ class MarkdownLoader {
 	 * Generate the highlight style options HTML
 	 */
 	generateHighlightOptions(selectedStyle = null) {
-		const options = ['<option value="">Use default (Monokai)</option>'];
+		const options = ['<option value="">Use default</option>'];
 		
 		return options.concat(AVAILABLE_HIGHLIGHT_STYLES.map(style => {
 			const isSelected = style === selectedStyle;
@@ -155,13 +156,13 @@ class MarkdownLoader {
 
 					<div class="form-group">
 						<label for="sectionSeparator">Section Separator (Regex)</label>
-						<input type="text" id="sectionSeparator" name="sectionSeparator" placeholder="^<!--section-->" value="${params.sectionSeparator && params.sectionSeparator !== DEFAULT_CONFIG.sectionSeparator ? params.sectionSeparator : ''}">
+						<input type="text" id="sectionSeparator" name="sectionSeparator" placeholder="\\n\\n---\\n---\\n\\n" value="${params.sectionSeparator && params.sectionSeparator !== DEFAULT_CONFIG.sectionSeparator ? params.sectionSeparator : ''}">
 						<small style="color: #666; font-size: 12px;">Regex pattern to separate horizontal slides (leave empty to use default)</small>
 					</div>
 
 					<div class="form-group">
 						<label for="slideSeparator">Slide Separator (Regex)</label>
-						<input type="text" id="slideSeparator" name="slideSeparator" placeholder="^<!--slide-->" value="${params.slideSeparator && params.slideSeparator !== DEFAULT_CONFIG.slideSeparator ? params.slideSeparator : ''}">
+						<input type="text" id="slideSeparator" name="slideSeparator" placeholder="\\n\\n---\\n\\n" value="${params.slideSeparator && params.slideSeparator !== DEFAULT_CONFIG.slideSeparator ? params.slideSeparator : ''}">
 						<small style="color: #666; font-size: 12px;">Regex pattern to separate vertical slides (leave empty to use default)</small>
 					</div>
                     
