@@ -656,141 +656,244 @@ class MarkdownLoader {
 	}
 
 	/**
-	 * Process relative paths in markdown content
+	 * Check if a position in the text is inside a code block or inline code
+	 */
+	isInsideCodeBlock(text, position) {
+		// Check for inline code (backticks)
+		const beforeText = text.substring(0, position);
+		const afterText = text.substring(position);
+		
+		// Count backticks before and after position
+		const backticksBeforeMatch = beforeText.match(/`/g);
+		const backticksAfterMatch = afterText.match(/`/g);
+		
+		const backticksBefore = backticksBeforeMatch ? backticksBeforeMatch.length : 0;
+		const backticksAfter = backticksAfterMatch ? backticksAfterMatch.length : 0;
+		
+		// If odd number of backticks before, we're inside inline code
+		if (backticksBefore % 2 === 1) {
+			return true;
+		}
+		
+		// Check for code blocks (```...```)
+		const codeBlocksBefore = beforeText.match(/```/g);
+		const codeBlocksAfter = afterText.match(/```/g);
+		
+		const codeBlocksBeforeCount = codeBlocksBefore ? codeBlocksBefore.length : 0;
+		const codeBlocksAfterCount = codeBlocksAfter ? codeBlocksAfter.length : 0;
+		
+		// If odd number of ``` before, we're inside a code block
+		if (codeBlocksBeforeCount % 2 === 1) {
+			return true;
+		}
+		
+		// Check for HTML code/pre tags
+		const htmlCodeBefore = beforeText.match(/<(code|pre)(?:\s[^>]*)?>|<\/(code|pre)>/gi);
+		if (htmlCodeBefore) {
+			let openTags = 0;
+			for (const tag of htmlCodeBefore) {
+				if (tag.startsWith('</')) {
+					openTags--;
+				} else {
+					openTags++;
+				}
+			}
+			if (openTags > 0) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Safely replace text while avoiding code blocks
+	 */
+	substitutePath(text, regex, replacementFn, description) {
+		console.log(`Processing ${description}...`);
+		
+		let result = text;
+		let match;
+		let offset = 0;
+		
+		// Reset regex to start from beginning
+		regex.lastIndex = 0;
+		
+		while ((match = regex.exec(text)) !== null) {
+			const matchPosition = match.index + offset;
+			const matchText = match[0];
+			
+			// Check if this match is inside a code block
+			if (this.isInsideCodeBlock(result, matchPosition)) {
+				console.log(`Skipping ${description} inside code block: ${matchText}`);
+				continue;
+			}
+			
+			// Apply the replacement
+			const replacement = replacementFn(match);
+			const beforeMatch = result.substring(0, matchPosition);
+			const afterMatch = result.substring(matchPosition + matchText.length);
+			
+			console.log(`Applying ${description}: ${matchText} -> ${replacement}`);
+			
+			result = beforeMatch + replacement + afterMatch;
+			
+			// Adjust offset for next iteration
+			offset += replacement.length - matchText.length;
+			
+			// Reset regex position since we modified the string
+			regex.lastIndex = 0;
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Generic path processing for both GitHub and local modes
+	 */
+	processPaths(markdown, owner = null, repo = null, filename = '') {
+		const isLocalMode = !owner || !repo;
+		const mode = isLocalMode ? 'local' : 'GitHub';
+		
+		console.log(`Processing paths in ${mode} mode for file:`, filename);
+		
+		// Extract directory from filename for local mode
+		const fileDir = filename.includes('/') ? 
+			filename.substring(0, filename.lastIndexOf('/') + 1) : '';
+		
+		let processed = markdown;
+		
+		// Path resolver function
+		const resolvePath = (pathType, path) => {
+			if (isLocalMode) {
+				if (path.startsWith('../')) {
+					return this.resolveLocalPath(path, fileDir);
+				} else {
+					return `/${fileDir}${path}`;
+				}
+			} else {
+				return this.buildRepoResourceUrl(owner, repo, path, filename);
+			}
+		};
+		
+		// Define all path patterns and their handlers
+		const pathPatterns = [
+			// Markdown images: ![alt](./path)
+			{
+				regex: /!\[([^\]]*)\]\(\.\/([^)]+)\)/g,
+				description: 'markdown images (relative)',
+				replacer: (match) => {
+					const [, alt, path] = match;
+					const resolvedPath = resolvePath('relative', './' + path);
+					return `![${alt}](${resolvedPath})`;
+				}
+			},
+			// Markdown images: ![alt](/path)
+			{
+				regex: /!\[([^\]]*)\]\(\/([^)]+)\)/g,
+				description: 'markdown images (absolute)',
+				replacer: (match) => {
+					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
+					const [, alt, path] = match;
+					const resolvedPath = resolvePath('absolute', '/' + path);
+					return `![${alt}](${resolvedPath})`;
+				}
+			},
+			// Markdown images: ![alt](../path)
+			{
+				regex: /!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g,
+				description: 'markdown images (parent)',
+				replacer: (match) => {
+					const [, alt, path] = match;
+					const resolvedPath = resolvePath('parent', path);
+					return `![${alt}](${resolvedPath})`;
+				}
+			},
+			// Markdown links: [text](./path)
+			{
+				regex: /\[([^\]]*)\]\(\.\/([^)]+)\)/g,
+				description: 'markdown links (relative)',
+				replacer: (match) => {
+					const [, text, path] = match;
+					const resolvedPath = resolvePath('relative', './' + path);
+					return `[${text}](${resolvedPath})`;
+				}
+			},
+			// Markdown links: [text](/path)
+			{
+				regex: /\[([^\]]*)\]\(\/([^)]+)\)/g,
+				description: 'markdown links (absolute)',
+				replacer: (match) => {
+					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
+					const [, text, path] = match;
+					const resolvedPath = resolvePath('absolute', '/' + path);
+					return `[${text}](${resolvedPath})`;
+				}
+			},
+			// Markdown links: [text](../path)
+			{
+				regex: /\[([^\]]*)\]\((\.\.\/[^)]+)\)/g,
+				description: 'markdown links (parent)',
+				replacer: (match) => {
+					const [, text, path] = match;
+					const resolvedPath = resolvePath('parent', path);
+					return `[${text}](${resolvedPath})`;
+				}
+			},
+			// HTML attributes: attr="./path"
+			{
+				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="\.\/([^"]+)"/g,
+				description: 'HTML attributes (relative)',
+				replacer: (match) => {
+					const [, attr, path] = match;
+					const resolvedPath = resolvePath('relative', './' + path);
+					return `${attr}="${resolvedPath}"`;
+				}
+			},
+			// HTML attributes: attr="/path"
+			{
+				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="\/([^"]+)"/g,
+				description: 'HTML attributes (absolute)',
+				replacer: (match) => {
+					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
+					const [, attr, path] = match;
+					const resolvedPath = resolvePath('absolute', '/' + path);
+					return `${attr}="${resolvedPath}"`;
+				}
+			},
+			// HTML attributes: attr="../path"
+			{
+				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="(\.\.\/[^"]+)"/g,
+				description: 'HTML attributes (parent)',
+				replacer: (match) => {
+					const [, attr, path] = match;
+					const resolvedPath = resolvePath('parent', path);
+					return `${attr}="${resolvedPath}"`;
+				}
+			}
+		];
+		
+		// Apply all path substitutions
+		for (const pattern of pathPatterns) {
+			processed = this.substitutePath(processed, pattern.regex, pattern.replacer, pattern.description);
+		}
+		
+		return processed;
+	}
+
+	/**
+	 * Process relative paths in markdown content (GitHub mode)
 	 * Converts ./path references to full GitHub URLs
 	 */
 	processRelativePaths(markdown, owner, repo, filename = '') {
-		console.log('Processing relative paths for repo:', `${owner}/${repo}`, 'file:', filename);
-		
-		// Process markdown image syntax: ![alt](./path), ![alt](/path), and ![alt](../path)
-		let processed = markdown.replace(/!\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, alt, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
-			console.log(`Replacing relative image: ${match} -> ![${alt}](${fullUrl})`);
-			return `![${alt}](${fullUrl})`;
-		});
-		
-		processed = processed.replace(/!\[([^\]]*)\]\(\/([^)]+)\)/g, (match, alt, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
-			console.log(`Replacing absolute image: ${match} -> ![${alt}](${fullUrl})`);
-			return `![${alt}](${fullUrl})`;
-		});
-		
-		processed = processed.replace(/!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, alt, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
-			console.log(`Replacing parent image: ${match} -> ![${alt}](${fullUrl})`);
-			return `![${alt}](${fullUrl})`;
-		});
-		
-		// Process markdown link syntax: [text](./path), [text](/path), and [text](../path)
-		processed = processed.replace(/\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, text, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
-			console.log(`Replacing relative link: ${match} -> [${text}](${fullUrl})`);
-			return `[${text}](${fullUrl})`;
-		});
-		
-		processed = processed.replace(/\[([^\]]*)\]\(\/([^)]+)\)/g, (match, text, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
-			console.log(`Replacing absolute link: ${match} -> [${text}](${fullUrl})`);
-			return `[${text}](${fullUrl})`;
-		});
-		
-		processed = processed.replace(/\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, text, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
-			console.log(`Replacing parent link: ${match} -> [${text}](${fullUrl})`);
-			return `[${text}](${fullUrl})`;
-		});
-		
-		// Process HTML src attributes: src="./path", src="/path", and src="../path"
-		processed = processed.replace(/\bsrc="\.\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
-			console.log(`Replacing relative src: ${match} -> src="${fullUrl}"`);
-			return `src="${fullUrl}"`;
-		});
-		
-		processed = processed.replace(/\bsrc="\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
-			console.log(`Replacing absolute src: ${match} -> src="${fullUrl}"`);
-			return `src="${fullUrl}"`;
-		});
-		
-		processed = processed.replace(/\bsrc="(\.\.\/[^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
-			console.log(`Replacing parent src: ${match} -> src="${fullUrl}"`);
-			return `src="${fullUrl}"`;
-		});
-		
-		// Process HTML href attributes: href="./path", href="/path", and href="../path"
-		processed = processed.replace(/\bhref="\.\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, './' + path, filename);
-			console.log(`Replacing relative href: ${match} -> href="${fullUrl}"`);
-			return `href="${fullUrl}"`;
-		});
-		
-		processed = processed.replace(/\bhref="\/([^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, '/' + path, filename);
-			console.log(`Replacing absolute href: ${match} -> href="${fullUrl}"`);
-			return `href="${fullUrl}"`;
-		});
-		
-		processed = processed.replace(/\bhref="(\.\.\/[^"]+)"/g, (match, path) => {
-			const fullUrl = this.buildRepoResourceUrl(owner, repo, path, filename);
-			console.log(`Replacing parent href: ${match} -> href="${fullUrl}"`);
-			return `href="${fullUrl}"`;
-		});
-		
-		return processed;
+		return this.processPaths(markdown, owner, repo, filename);
 	}
 
 	/**
 	 * Process relative paths for local files
 	 */
 	processLocalPaths(markdown, filename = '') {
-		console.log('Processing local paths for file:', filename);
-		
-		// Extract directory from filename (e.g., "lab/presentation.md" -> "lab/")
-		const fileDir = filename.includes('/') ? 
-			filename.substring(0, filename.lastIndexOf('/') + 1) : '';
-		
-		// Process markdown image syntax: ![alt](./path) and ![alt](../path)
-		let processed = markdown.replace(/!\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, alt, path) => {
-			const localPath = `/${fileDir}${path}`;
-			console.log(`Replacing local relative image: ${match} -> ![${alt}](${localPath})`);
-			return `![${alt}](${localPath})`;
-		});
-		
-		processed = processed.replace(/!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, alt, path) => {
-			const localPath = this.resolveLocalPath(path, fileDir);
-			console.log(`Replacing local parent image: ${match} -> ![${alt}](${localPath})`);
-			return `![${alt}](${localPath})`;
-		});
-		
-		// Process markdown link syntax: [text](./path) and [text](../path)
-		processed = processed.replace(/\[([^\]]*)\]\(\.\/([^)]+)\)/g, (match, text, path) => {
-			const localPath = `/${fileDir}${path}`;
-			console.log(`Replacing local relative link: ${match} -> [${text}](${localPath})`);
-			return `[${text}](${localPath})`;
-		});
-		
-		processed = processed.replace(/\[([^\]]*)\]\((\.\.\/[^)]+)\)/g, (match, text, path) => {
-			const localPath = this.resolveLocalPath(path, fileDir);
-			console.log(`Replacing local parent link: ${match} -> [${text}](${localPath})`);
-			return `[${text}](${localPath})`;
-		});
-		
-		// Process HTML src attributes: src="./path" and src="../path"
-		processed = processed.replace(/\bsrc="\.\/([^"]+)"/g, (match, path) => {
-			const localPath = `/${fileDir}${path}`;
-			console.log(`Replacing local relative src: ${match} -> src="${localPath}"`);
-			return `src="${localPath}"`;
-		});
-		
-		processed = processed.replace(/\bsrc="(\.\.\/[^"]+)"/g, (match, path) => {
-			const localPath = this.resolveLocalPath(path, fileDir);
-			console.log(`Replacing local parent src: ${match} -> src="${localPath}"`);
-			return `src="${localPath}"`;
-		});
-		
-		return processed;
+		return this.processPaths(markdown, null, null, filename);
 	}
 
 	/**

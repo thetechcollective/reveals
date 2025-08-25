@@ -15,6 +15,9 @@ This project builds on [reveal.js](https://revealjs.com/)
 
 The purpose it _separate what from how_ and to go `MarkDown` crazy 🤪 - and allow _all_ the nice reveal.js features to be available from simple markdown files.
 
+🔗 If you are looking at this `README.md` in GitHub, try to <br/>[load it as a reveal](https://reveals.thetechcollective.dev/markdownloader/?repo=reveals&owner=thetechcollective&file=README.md)
+<!-- .element style="font-size:30px" -->
+
 ---
 
 ### ⬇️ MarkDown only
@@ -48,7 +51,7 @@ All you have to do is to create a reveal-flavoured markdown with your slides. St
    - **`repo `** Repository name
    - **`file `** Markdown filename
 3. 🎁 There are more settings available, but they are all optional
-4. 🚀 Click **Load** 
+4. 🚀 Click **Load**
 
 <!-- .element style="text-align:left; font-size:30px" -->
 
@@ -191,58 +194,109 @@ Here's an example that uses `html` comments as markers.
 ---
 ---
 
-# 🖼️ Image Support
+# 🖼️ Self-hosted assets
 
 ---
 
-## Relative Paths
+## Path substitution
 
-The loader automatically converts relative paths to absolute GitHub URLs, respecting the markdown file's location:
+The loader precompiles your MarkDown and substitutes path references to absolute GitHub URLs.Safely supporting paths relative to you MarkDown file or your repo root- as you would expect
 
-**Relative paths** (start with `./`) - resolved relative to the markdown file's directory:
+— and exactly as GitHub renders your `.md`.
 
-```markdown
-![My Image](./images/photo.jpg)
+👌 You can conveniently keep your assets in you own repo and reference them as you are used to
+
+---
+
+## Example Repository Structure
+
+A repo named `lakruzz/presentations`
+
+```yaml
+presentations/
+├── presentation.md      # Main presentation
+├── vision/
+│   ├── vision.md        # Vision document
+│   ├── .png
+│   └── chart.jpg
+└── assets/
+    ├── logo.png
+    └── background.png
 ```
 
-**Absolute paths** (start with `/`) - resolved from the repository root:
+---
+
+## Example paths substitution
+
+In the `vision/vision.md` file
 
 ```markdown
-![My Logo](/assets/logo.png)
+![The chart](./chart.jpg) <!--  current directory relative to vision.md -->
+![Logo](../assets/logo.jpg) <!-- parent directory, relative to vision.md -->
+![Same logo](/assets/logo.png) <!-- repository root -->
+
 ```
+<!-- .element style="text-align:left; font-size:15px" -->
+...becomes
 
-**Parent directory paths** (start with `../`) - navigate up directory levels:
-
-```markdown
-![Shared Asset](../shared/logo.png)
-![Root Asset](../../logo.png)
+```html
+<img alt="The Chart" 
+  src="https://raw.githubusercontent.com/lakruzz/presentations/main/vision/chart.jpg">
+<img alt="Logo" 
+  src="https://raw.githubusercontent.com/lakruzz/presentations/main/assets/logo.png">
+<img alt="Same logo" 
+  src="https://raw.githubusercontent.com/lakruzz/presentations/main/assets/logo.png">
 ```
-
-**Examples:**
-
-If markdown is at repo root (`file=presentation.md`):
-
-- `./images/photo.jpg` → `https://raw.githubusercontent.com/owner/repo/main/images/photo.jpg`
-- `/assets/logo.png` → `https://raw.githubusercontent.com/owner/repo/main/assets/logo.png`
-- `../logo.png` → `https://raw.githubusercontent.com/owner/repo/main/logo.png` (can't go above root)
-
-If markdown is in subfolder (`file=docs/guide/presentation.md`):
-
-- `./images/photo.jpg` → `https://raw.githubusercontent.com/owner/repo/main/docs/guide/images/photo.jpg`
-- `/assets/logo.png` → `https://raw.githubusercontent.com/owner/repo/main/assets/logo.png`
-- `../shared.png` → `https://raw.githubusercontent.com/owner/repo/main/docs/shared.png`
-- `../../logo.png` → `https://raw.githubusercontent.com/owner/repo/main/logo.png`
+<!-- .element style="text-align:left; font-size:15px" -->
 
 ---
 
 ## Supported References
 
-- **Markdown images:** `![alt](./path)`, `![alt](/path)`, and `![alt](../path)`
-- **Markdown links:** `[text](./path)`, `[text](/path)`, and `[text](../path)`
-- **HTML src attributes:** `src="./path"`, `src="/path"`, and `src="../path"`
-- **HTML href attributes:** `href="./path"`, `href="/path"`, and `href="../path"`
+- Markdown references:<br/>
+`[text](./path)`<!-- .element style=" font-size:25px" --><br/>
+`![image](./path)`<!-- .element style=" font-size:25px" -->
+- HTML [data-]src attributes:<br/>
+`src="./path"`<!-- .element style=" font-size:25px" --><br/>
+`data-src="./path"`<!-- .element style=" font-size:25px" -->
+- HTML href attributes:<br/>
+`href="./path"`<!-- .element style=" font-size:25px" -->
+- Reveals data-background[-video] attributes:<br/>
+`data-background="./path"`<!-- .element style=" font-size:25px" --><br/>
+`data-background-video="./path"`<!-- .element style=" font-size:25px" -->
 
-All relative (`./`), absolute (`/`), and parent (`../`) paths are automatically resolved!
+---
+
+## ⛔️ NOT Supported References
+
+Although valid in other contexts, we do  NOT substitute implied paths - path references NOT starting with `/` or `./` or `../`
+
+Implied references are interpreted as ...just text and they ar not substituted.
+
+---
+
+### Implied references Example
+
+Although the two examples below are semantically the same, we only support the explicit variant
+
+
+```markdown[2]
+![The chart](./chart.jpg) <!--  current directory relative to vision.md -->
+![The chart - again](chart.jpg) <!--  implied current directory - not explicit enough -->
+
+```
+<!-- .element style="font-size:15px" -->
+...becomes
+
+```html[3]
+<img alt="The Chart" 
+  src="https://raw.githubusercontent.com/lakruzz/presentations/main/vision/chart.jpg">
+<img alt="The Chart - again" src="chart.jpg">
+```
+<!-- .element style="font-size:15px" -->
+
+⛔️ At runtime this will be interpreted as a resource inside the `/markdownloader` folder on the server. This won't work!
+<!-- .element style="font-size:15px" -->
 
 ---
 ---
@@ -251,125 +305,136 @@ All relative (`./`), absolute (`/`), and parent (`../`) paths are automatically 
 
 ---
 
-## Slide-Specific Backgrounds
+## Reveal flavours
 
-Use reveal.js slide directives in your markdown:
+Reveal supports two directives you can pass on as `html` comments
+
+- one for `slide`
+- one for `element`
+
+(see [reveal's documentation](https://revealjs.com/markdown/))
+<!-- .element style="font-size:25px" -->
+
+---
+
+## Slide directive
+
+An `html` comment starting with the keyword `.slide:`
+
+Anything you add after that will be added to the `<section>` tag in the rendered `html`
 
 ```markdown
+---
+
 <!-- .slide: data-background="#ff0000" -->
-# Red Background Slide
 
-<!-- .slide: data-background="./background.jpg" -->
-# Image Background Slide
+# Slide header
+
+Enjoy the (very) read background on this slide
+
+---
 ```
 
----
-
-## Element Styling
-
-Style individual elements:
-
-```markdown
-![Logo](./logo.png) <!-- .element: style="height: 200px;" -->
-
-<q>Quoted text</q> <!-- .element: style="color: blue;" -->
-```
-
----
----
-
-# 📚 Examples
+...see it live on the next slide
 
 ---
 
-## Example Repository Structure
+<!-- .slide: data-background="#ff0000" -->
 
-```text
-my-presentation/
-├── presentation.md      # Main presentation
-├── images/
-│   ├── logo.png
-│   └── chart.jpg
-└── assets/
-    └── data.json
-```
+# Slide header
+
+Enjoy the (very) read background on this slide
 
 ---
 
-## Example Markdown
+## Element directive
+
+An `html` comment starting with the keyword `.element:`
+
+Anything you add after that will be added to the _`the-most-recent-generated`_ tag in the rendered `html`
+
+---
+
+Element style example 1:
 
 ```markdown
 ---
-title: "My Talk"
-theme: "black"
-transition: "fade"
+
+# A list
+
+- Item 1
+- Item 2 <!-- .element: style="color: blue;" -->
+- Item 3 <!-- .element: style="color: red;" -->
+
 ---
-
-# Welcome
-
-![Logo](./images/logo.png)
-
-<!--section-->
-
-# Section 2
-
-![Chart](./images/chart.jpg)
 ```
 
+🤔 Will generate a list with three items, the first has the color defined by the theme, the second is blue and the third is red item
+<!-- .element style="font-size:15px" -->
+
+...see it live on the next slide
+
 ---
+
+# A list
+
+- Item 1
+- Item 2 <!-- .element: style="color: blue;" -->
+- Item 3 <!-- .element: style="color: red;" -->
+
 ---
 
-# 🛠️ Development
+Element style examples:
+
+```markdown
+---
+
+# A list
+
+- Item 1 <!-- class="fragment "-->
+- Item 2 <!-- .element: style="color: blue;" -->
+- Item 3 
+
+<!-- .element: style="color: red;" -->
+
+---
+````
+
+🤔 Will generate a list with three items, the first and third are red, the second is blue. Only the first items is shown at first, the second and third appear as you advance (click ⬇️ arrow)
+<!-- .element style="font-size:15px" -->
+
+...see it live on the next slide
 
 ---
 
-## Repository Structure
+# A list
 
-- **`/site/`** - Deployable website files
-- **Root** - Development tools and configuration
+- Item 1
+- Item 2 <!-- .element: class="fragment"  style="color: blue;" -->
+- Item 3 <!-- .element: class="fragment" -->
 
-```bash
-npm ci          # Install dependencies
-npm run build   # Build the site
-npm start       # Development server
+<!-- .element: style="color: red;" -->
+
+---
+
+# Notes
+
+A new line containing only `Note:` will indicate the beginning of you speaker notes - until end of the slide.
+
+```markdown
+ ---
+
+ # Notes
+
+ Hit `s` ...for _speaker notes_
+
+ Note:
+
+ This slide has speaker notes
+
+ ---
 ```
 
----
+Note:
 
-## Building
-
-The site builds reveal.js components into `/site/dist/`:
-
-- CSS themes and core styles
-- JavaScript modules and plugins  
-- Optimized for production deployment
-
----
----
-
-# 🎭 Try It Now
-
----
-
-## View This Manual
-
-This README.md is itself a reveal.js presentation!
-
-**Try it:**
-
-```text
-/markdownloader/?owner=thetechcollective&repo=reveals&file=README.md
-```
-
----
-
-## Create Your Own
-
-1. **Create a GitHub repository**
-2. **Add a markdown file with frontmatter**
-3. **Include relative image paths**
-4. **Load it with the presentation loader**
-
----
-
-**Happy presenting!** 🎉
+This slide has speaker notes
