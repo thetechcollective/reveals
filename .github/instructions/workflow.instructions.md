@@ -53,52 +53,16 @@ This repository uses the `gh-tt` GitHub CLI extension for a lean, quality-first 
 - **Fast-forward only**: Clean git history, no merge commits
 - **Branch naming**: Always prefixed with issue number
 - **Lean process**: Minimal overhead, maximum automation
+- **DRY**: Dont Repeat Yourself, strive for low cyclomatic complexity and avoid copy'n'paste reuse
 
 ## File Paths and Structure
 
-### Important paths (always use root-relative paths)
+### reveal flavored Markdown syntax
 
-- CSS: `/dist/theme/`, `/dist/reveal.css`
-- JavaScript: `/dist/reveal.js`, `/js/markdownloader.js`  
-- Plugins: `/plugin/markdown/`, `/plugin/highlight/`
-
-### Why root-relative paths
-
-- Site deploys from domain root (`reveals.thetechcollective.dev/`)
-- Prevents breakage when moving files between folders
-- Eliminates fragile `../` relative path calculations
-
-## Debugging Deployments
-
-- Check `https://reveals.thetechcollective.dev/version.txt`
-- Contains: commit SHA, timestamp, branch, workflow run
-- Helps verify what's actually deployed vs cached content
-
-## Reveal.js Specific Notes
-
-### Markdown syntax
-
-- `<!--section-->`: Horizontal slide separator
-- `<!--slide-->`: Vertical slide separator  
+- ``\n\n---\n---\n\n``: Horizontal slide separator, two markdown rules
+- `\n\n---\n\n`: Vertical slide separator, a markdown ruler
 - `<!-- .element: style="..." -->`: Style individual elements
 - `<!-- .slide: data-background="..." -->`: Style entire slides
-
-### Element styling placement
-
-- **No newline before comment**: Styles the markdown element itself (images, links)
-- **Newline before comment**: Styles the paragraph containing the content
-
-## Common Issues
-
-### Theme switching
-
-- Always update theme when URL parameter provided (don't check against defaults)
-- MarkdownLoader should honor URL params regardless of default values
-
-### Path issues
-
-- Use root-relative paths (`/dist/`) not relative (`../dist/`)  
-- Prevents breakage when moving files to different folder depths
 
 ## GitHub Actions Structure
 

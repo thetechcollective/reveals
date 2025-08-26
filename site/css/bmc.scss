@@ -1,0 +1,300 @@
+// Business Model Canvas SCSS
+// Creates a responsive 10-column grid layout for proper BMC proportions
+
+.bmc {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 1rem;
+  height: 80vh;
+  min-height: 600px;
+  max-height: 800px;
+  padding: 1rem;
+  box-sizing: border-box;
+  
+  // Base styles for all BMC boxes
+  > ul {
+    list-style: disc inside;
+    margin: 0;
+    padding: 1rem;
+    border: 2px solid #333;
+    border-radius: 8px;
+    background: #f9f9f9;
+    position: relative;
+    overflow-y: auto;
+    min-height: 0; // Allow grid to control height
+    
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s ease;
+    }
+    
+    li {
+      margin-bottom: 0.5rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+      
+      &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+    }
+  }
+  
+  // Caption styles using ::before pseudo-element - as a sticky header inside the box
+  > ul::before {
+    content: '';
+    display: block;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #f0f0f0;
+    color: #333;
+    padding: 0.4rem 0.75rem;
+    margin: 0 0 0.4rem 0;
+    font-weight: bold;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #ddd;
+    z-index: 5;
+  }
+  
+  // Individual box positioning and captions
+  .bmc-partners {
+    grid-column: 1 / 3 !important;
+    grid-row: 1 / 3 !important; /* Start at row 1 (no header row in grid) */
+    background: #f8faff !important;
+    
+    &::before {
+      content: 'Key Partners';
+      color: #3b82f6;
+    }
+  }
+  
+  .bmc-activities {
+    grid-column: 3 / 5 !important;
+    grid-row: 1 / 2 !important; /* Start at row 1 (no header row in grid) */
+    background: #f8f8fa !important;
+    
+    &::before {
+      content: 'Key Activities';
+      color: #8b5cf6;
+    }
+  }
+  
+  .bmc-resources {
+    grid-column: 3 / 5 !important;
+    grid-row: 2 / 3 !important; /* Row 2 (no header row in grid) */
+    background: #f9f5ff !important;
+    
+    &::before {
+      content: 'Key Resources';
+      color: #6366f1;
+    }
+  }
+  
+  .bmc-valueprop {
+    grid-column: 5 / 7 !important;
+    grid-row: 1 / 3 !important; /* Start at row 1 (no header row in grid) */
+    background: #fffbeb !important;
+    border-color: #f59e0b !important;
+    
+    &::before {
+      content: 'Value Proposition';
+      color: #d97706;
+      background: inherit;
+    }
+  }
+  
+  .bmc-relations {
+    grid-column: 7 / 9 !important;
+    grid-row: 1 / 2 !important; /* Start at row 1 (no header row in grid) */
+    background: #f0fdf4 !important;
+    
+    &::before {
+      content: 'Customer Relations';
+      color: #10b981;
+    }
+  }
+  
+  .bmc-channels {
+    grid-column: 7 / 9 !important;
+    grid-row: 2 / 3 !important; /* Row 2 (no header row in grid) */
+    background: #fff1f2 !important;
+    
+    &::before {
+      content: 'Channels';
+      color: #ef4444;
+    }
+  }
+  
+  .bmc-segments {
+    grid-column: 9 / 11 !important;
+    grid-row: 1 / 3 !important; /* Start at row 1 (no header row in grid) */
+    background: #f8fafb !important;
+    
+    &::before {
+      content: 'Customer Segments';
+      color: #0ea5e9;
+    }
+  }
+  
+  .bmc-cost {
+    grid-column: 1 / 6 !important;
+    grid-row: 3 / 4 !important; /* Row 3 (no header row in grid) */
+    background: #fef2f2 !important;
+    
+    &::before {
+      content: 'Cost Structure';
+      color: #b91c1c;
+      background: inherit;
+    }
+  }
+  
+  .bmc-revenue {
+    grid-column: 6 / 11 !important;
+    grid-row: 3 / 4 !important; /* Row 3 (no header row in grid) */
+    background: #ecfdf5 !important;
+    
+    &::before {
+      content: 'Revenue Streams';
+      color: #059669;
+      background: inherit;
+    }
+  }
+}
+
+// reveal.js specific overrides to ensure grid layout works
+.reveal .slides section.bmc {
+  display: grid !important;
+  grid-template-columns: repeat(10, 1fr) !important;
+  grid-template-rows: 1fr 1fr 1fr !important;
+  gap: 0.5rem !important;
+  height: 70vh !important; /* Reduced height to prevent overflow */
+  max-height: calc(100% - 120px) !important; /* Ensure it fits within slide boundaries */
+  margin-top: 60px !important; /* Space for header */
+  padding: 0.5rem !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+  width: 100% !important;
+  
+  > ul {
+    display: block !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important; /* Remove all padding to fix box overlap */
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    background: #f9f9f9 !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    list-style: disc inside !important;
+    
+    /* Add padding to list items instead of the container */
+    li {
+      padding: 0 0.75rem !important;
+      margin: 0.4rem 0 !important;
+    }
+  }
+}
+
+// Overview mode support
+.reveal.overview .slides section.bmc {
+  display: grid !important;
+  grid-template-columns: repeat(10, 1fr) !important;
+  grid-template-rows: 1fr 1fr 1fr !important; /* Three rows for content, header handled by Reveal.js */
+  height: auto !important;
+  max-height: 100% !important;
+  
+  ul {
+    display: block !important;
+    position: relative !important;
+  }
+}
+
+// Responsive adjustments - single column on small screens
+@media (max-width: 768px) {
+  .reveal .slides section.bmc,
+  .bmc {
+    // Stack vertically on mobile only
+    grid-template-columns: 1fr !important;
+    grid-template-rows: repeat(9, minmax(100px, auto)) !important; /* 9 boxes */
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    
+    > ul {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+      height: auto !important;
+      min-height: 120px !important;
+    }
+    
+    // Reorder for logical mobile flow
+    .bmc-partners { order: 1 !important; }
+    .bmc-activities { order: 2 !important; }
+    .bmc-resources { order: 3 !important; }
+    .bmc-valueprop { order: 4 !important; }
+    .bmc-relations { order: 5 !important; }
+    .bmc-channels { order: 6 !important; }
+    .bmc-segments { order: 7 !important; }
+    .bmc-cost { order: 8 !important; }
+    .bmc-revenue { order: 9 !important; }
+  }
+}
+
+// Print styles
+@media print {
+  .reveal .slides section.bmc,
+  .bmc {
+    height: auto !important;
+    min-height: auto !important;
+    page-break-inside: avoid !important;
+    
+    > ul {
+      box-shadow: none !important;
+      border: 2px solid #000 !important;
+      
+      &:hover {
+        transform: none !important;
+      }
+    }
+  }
+}
+
+// Header styling - explicitly positioned above grid
+/* Handle headers (h1-h4) that are in relation to the BMC section */
+.reveal .slides section.bmc ~ h1,
+.reveal .slides section.bmc ~ h2,
+.reveal .slides section.bmc ~ h3,
+.reveal .slides section.bmc ~ h4,
+.reveal .slides section.bmc + h1,
+.reveal .slides section.bmc + h2,
+.reveal .slides section.bmc + h3,
+.reveal .slides section.bmc + h4,
+.reveal .slides section h1 + section.bmc,
+.reveal .slides section h2 + section.bmc,
+.reveal .slides section h3 + section.bmc,
+.reveal .slides section h4 + section.bmc,
+.reveal .slides section.bmc h1,
+.reveal .slides section.bmc h2,
+.reveal .slides section.bmc h3,
+.reveal .slides section.bmc h4 {
+  position: absolute !important;
+  top: -90px !important; /* Fixed position relative to the canvas */
+  left: 0 !important;
+  right: 0 !important;
+  text-align: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 10 !important;
+  width: 100% !important;
+}

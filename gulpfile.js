@@ -202,7 +202,14 @@ gulp.task('css-markdownloader', () => gulp.src(['site/css/markdownloader.scss'])
     .pipe(minify({compatibility: 'ie9'}))
     .pipe(gulp.dest('./site/dist')))
 
-gulp.task('css', gulp.parallel('css-themes', 'css-core', 'css-markdownloader'))
+gulp.task('css-bmc', () => gulp.src(['site/css/bmc.scss'])
+    .pipe(compileSass())
+    .pipe(autoprefixer())
+    .pipe(minify({compatibility: 'ie9'}))
+    .pipe(header(cssLicense))
+    .pipe(gulp.dest('./site/dist')))
+
+gulp.task('css', gulp.parallel('css-themes', 'css-core', 'css-markdownloader', 'css-bmc'))
 
 gulp.task('qunit', () => {
 

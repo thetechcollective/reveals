@@ -1,0 +1,73 @@
+
+// Business Model Canvas (BMC) - Grid Layout for section.bmc and ul.bmc-*
+@mixin bmc-block-base {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid #eee;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 12px 10px 10px 10px;
+  box-sizing: border-box;
+  margin: 0;
+  min-height: 60px;
+  color: #222;
+}
+
+// Strict 5-column grid with fixed widths, always 5 columns, horizontal scroll if needed
+// Responsive 5-column grid using percentages
+// Responsive 5-column grid using percentages
+.reveal .slides section.bmc {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  min-height: 80vh;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+  padding: 18px 12px;
+  box-sizing: border-box;
+}
+
+// Top row: 5 blocks, each 20%
+.reveal .slides section.bmc > ul.bmc-partners   { @include bmc-block-base; grid-column: 1; grid-row: 1; }
+.reveal .slides section.bmc > ul.bmc-activities { @include bmc-block-base; grid-column: 2; grid-row: 1; }
+.reveal .slides section.bmc > ul.bmc-resources  { @include bmc-block-base; grid-column: 3; grid-row: 1; }
+.reveal .slides section.bmc > ul.bmc-valueprop  { @include bmc-block-base; grid-column: 4; grid-row: 1; }
+.reveal .slides section.bmc > ul.bmc-relations  { @include bmc-block-base; grid-column: 5; grid-row: 1; }
+// Middle row: 2 blocks, each 20%
+.reveal .slides section.bmc > ul.bmc-channels   { @include bmc-block-base; grid-column: 2; grid-row: 2; }
+.reveal .slides section.bmc > ul.bmc-segments   { @include bmc-block-base; grid-column: 4; grid-row: 2; }
+// Bottom row: 2 blocks, each 50%
+.reveal .slides section.bmc > ul.bmc-cost       { @include bmc-block-base; grid-column: 1 / span 3; grid-row: 3; }
+.reveal .slides section.bmc > ul.bmc-revenue    { @include bmc-block-base; grid-column: 3 / span 3; grid-row: 3; }
+
+// Block headers
+// Lower heading font size and force wrap
+.reveal .slides section.bmc > ul.bmc-partners::before   { content: "Key Partners"; font-weight: bold; color: #ff6b6b; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-activities::before { content: "Key Activities"; font-weight: bold; color: #4ecdc4; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-resources::before  { content: "Key Resources"; font-weight: bold; color: #45b7d1; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-valueprop::before  { content: "Value Proposition"; font-weight: bold; color: #f39c12; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-relations::before  { content: "Customer Relationships"; font-weight: bold; color: #9b59b6; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-channels::before   { content: "Channels"; font-weight: bold; color: #e74c3c; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-segments::before   { content: "Customer Segments"; font-weight: bold; color: #2ecc71; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-cost::before       { content: "Cost Structure"; font-weight: bold; color: #e67e22; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+.reveal .slides section.bmc > ul.bmc-revenue::before    { content: "Revenue Streams"; font-weight: bold; color: #27ae60; display: block; margin-bottom: 6px; font-size: 0.9em; white-space: normal; word-break: break-word; }
+
+// Typography for BMC blocks
+// Bullets inside containers
+.reveal .slides section.bmc > ul {
+  list-style-position: inside;
+}
+// Lower content font size and force wrap
+.reveal .slides section.bmc > ul li,
+.reveal .slides section.bmc > ul p {
+  font-size: 0.85em;
+  color: #222;
+  margin-bottom: 4px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+// No media queries needed—always 5 columns, horizontal scroll if viewport is too narrow

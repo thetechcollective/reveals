@@ -51,6 +51,7 @@
         "pyproject",
         "revealjs",
         "hattab",
-        "gulpfile"
+        "gulpfile",
+        "Molesky"
     ]
 }
