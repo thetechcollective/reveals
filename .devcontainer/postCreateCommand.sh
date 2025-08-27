@@ -25,9 +25,5 @@ fi
 echo "$PREFIX Installing npm packages from lock file"
 npm ci
 
-
-echo "$PREFIX Starting dev server"
-npm start
-
 echo "$PREFIX SUCCESS"
 exit 0

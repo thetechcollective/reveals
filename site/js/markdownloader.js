@@ -468,20 +468,31 @@ class MarkdownLoader {
 	 * Parse YAML frontmatter from markdown content
 	 */
 	parseFrontmatter(markdown) {
-		// Check if markdown starts with frontmatter delimiter
-		if (!markdown.startsWith('---\n')) {
+		// Check if markdown starts with frontmatter delimiter (more flexible matching)
+		if (!markdown.trim().startsWith('---')) {
 			return { frontmatter: {}, content: markdown };
 		}
 		
-		// Find the closing delimiter
-		const endIndex = markdown.indexOf('\n---\n', 4);
-		if (endIndex === -1) {
+		// Find the closing delimiter (more flexible matching for various formats)
+		let startIndex = markdown.indexOf('---');
+		let searchStartPos = startIndex + 3;
+		
+		// Find closing delimiter, checking for variations like '---', '--- ', '\n---\n', etc.
+		const endDelimiterRegex = /\n\s*---\s*/m;
+		const endMatch = markdown.substring(searchStartPos).match(endDelimiterRegex);
+		
+		if (!endMatch) {
+			// No valid closing delimiter found
 			return { frontmatter: {}, content: markdown };
 		}
+		
+		// Calculate end position
+		const endDelimiterPos = searchStartPos + endMatch.index;
+		const endDelimiterLength = endMatch[0].length;
 		
 		// Extract frontmatter and content
-		const frontmatterText = markdown.slice(4, endIndex);
-		const content = markdown.slice(endIndex + 5);
+		const frontmatterText = markdown.slice(startIndex + 3, endDelimiterPos).trim();
+		const content = markdown.slice(endDelimiterPos + endDelimiterLength);
 		
 		// Parse YAML frontmatter (simple parser for basic key-value pairs)
 		const frontmatter = this.parseSimpleYaml(frontmatterText);
