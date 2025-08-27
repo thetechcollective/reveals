@@ -46,7 +46,8 @@
 	
 	// Mount SSH keys from host to container
 	"mounts": [
-		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+		"source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+		"source=${localEnv:HOME},target=/localhome,type=bind,consistency=cached"
 	],
 
     "remoteEnv": {
