@@ -663,27 +663,31 @@ class MarkdownLoader {
 		const beforeText = text.substring(0, position);
 		const afterText = text.substring(position);
 		
-		// Count backticks before and after position
-		const backticksBeforeMatch = beforeText.match(/`/g);
-		const backticksAfterMatch = afterText.match(/`/g);
+		// More robust approach for code blocks
+		// Find all code block start/end markers and track if we're inside one
+		const codeBlockMarkers = [...beforeText.matchAll(/```/g)];
+		let insideCodeBlock = false;
 		
-		const backticksBefore = backticksBeforeMatch ? backticksBeforeMatch.length : 0;
-		const backticksAfter = backticksAfterMatch ? backticksAfterMatch.length : 0;
+		if (codeBlockMarkers.length > 0) {
+			// If there are an odd number of markers before position, we're in a block
+			insideCodeBlock = codeBlockMarkers.length % 2 === 1;
+		}
 		
-		// If odd number of backticks before, we're inside inline code
-		if (backticksBefore % 2 === 1) {
+		if (insideCodeBlock) {
 			return true;
 		}
 		
-		// Check for code blocks (```...```)
-		const codeBlocksBefore = beforeText.match(/```/g);
-		const codeBlocksAfter = afterText.match(/```/g);
+		// More robust approach for inline code
+		// Find all inline code start/end markers and track if we're inside one
+		const inlineCodeMarkers = [...beforeText.matchAll(/`(?!``)/g)];
+		let insideInlineCode = false;
 		
-		const codeBlocksBeforeCount = codeBlocksBefore ? codeBlocksBefore.length : 0;
-		const codeBlocksAfterCount = codeBlocksAfter ? codeBlocksAfter.length : 0;
+		if (inlineCodeMarkers.length > 0) {
+			// If there are an odd number of markers before position, we're in inline code
+			insideInlineCode = inlineCodeMarkers.length % 2 === 1;
+		}
 		
-		// If odd number of ``` before, we're inside a code block
-		if (codeBlocksBeforeCount % 2 === 1) {
+		if (insideInlineCode) {
 			return true;
 		}
 		
@@ -712,38 +716,28 @@ class MarkdownLoader {
 	substitutePath(text, regex, replacementFn, description) {
 		console.log(`Processing ${description}...`);
 		
+		// Create a clean copy of the text to work with
 		let result = text;
-		let match;
-		let offset = 0;
 		
-		// Reset regex to start from beginning
-		regex.lastIndex = 0;
-		
-		while ((match = regex.exec(text)) !== null) {
-			const matchPosition = match.index + offset;
-			const matchText = match[0];
+		// Instead of using regex.exec in a loop, use String.replace
+		// This approach processes all matches in one go and avoids the offset calculation issues
+		result = result.replace(regex, (match, ...args) => {
+			// Get the full text match position
+			const offset = args[args.length - 2];
+			const fullString = args[args.length - 1];
 			
 			// Check if this match is inside a code block
-			if (this.isInsideCodeBlock(result, matchPosition)) {
-				console.log(`Skipping ${description} inside code block: ${matchText}`);
-				continue;
+			if (this.isInsideCodeBlock(fullString, offset)) {
+				console.log(`Skipping ${description} inside code block: ${match}`);
+				return match; // Return the original text without changes
 			}
 			
 			// Apply the replacement
-			const replacement = replacementFn(match);
-			const beforeMatch = result.substring(0, matchPosition);
-			const afterMatch = result.substring(matchPosition + matchText.length);
+			const replacement = replacementFn([match, ...args]);
+			console.log(`Applying ${description}: ${match} -> ${replacement}`);
 			
-			console.log(`Applying ${description}: ${matchText} -> ${replacement}`);
-			
-			result = beforeMatch + replacement + afterMatch;
-			
-			// Adjust offset for next iteration
-			offset += replacement.length - matchText.length;
-			
-			// Reset regex position since we modified the string
-			regex.lastIndex = 0;
-		}
+			return replacement;
+		});
 		
 		return result;
 	}
@@ -768,7 +762,14 @@ class MarkdownLoader {
 			if (isLocalMode) {
 				if (path.startsWith('../')) {
 					return this.resolveLocalPath(path, fileDir);
+				} else if (path.startsWith('./')) {
+					// Handle relative paths properly by removing the ./ prefix and joining with fileDir
+					const cleanPath = path.substring(2); // Remove ./ prefix
+					console.log(`Resolving relative path: ${path} to ${fileDir + cleanPath}`);
+					return `/${fileDir}${cleanPath}`;
 				} else {
+					// For paths without ./ prefix
+					console.log(`Resolving plain path: ${path} to ${fileDir + path}`);
 					return `/${fileDir}${path}`;
 				}
 			} else {
@@ -782,9 +783,11 @@ class MarkdownLoader {
 			{
 				regex: /!\[([^\]]*)\]\(\.\/([^)]+)\)/g,
 				description: 'markdown images (relative)',
-				replacer: (match) => {
-					const [, alt, path] = match;
+				replacer: (matchArgs) => {
+					const [full, alt, path] = matchArgs;
+					// Pass the path with ./ prefix to make sure it's handled by the right branch in resolvePath
 					const resolvedPath = resolvePath('relative', './' + path);
+					console.log(`Resolving image: ![${alt}](${resolvedPath})`);
 					return `![${alt}](${resolvedPath})`;
 				}
 			},
@@ -792,9 +795,9 @@ class MarkdownLoader {
 			{
 				regex: /!\[([^\]]*)\]\(\/([^)]+)\)/g,
 				description: 'markdown images (absolute)',
-				replacer: (match) => {
-					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
-					const [, alt, path] = match;
+				replacer: (matchArgs) => {
+					const [full, alt, path] = matchArgs;
+					if (isLocalMode) return full; // Skip absolute paths in local mode
 					const resolvedPath = resolvePath('absolute', '/' + path);
 					return `![${alt}](${resolvedPath})`;
 				}
@@ -803,8 +806,8 @@ class MarkdownLoader {
 			{
 				regex: /!\[([^\]]*)\]\((\.\.\/[^)]+)\)/g,
 				description: 'markdown images (parent)',
-				replacer: (match) => {
-					const [, alt, path] = match;
+				replacer: (matchArgs) => {
+					const [full, alt, path] = matchArgs;
 					const resolvedPath = resolvePath('parent', path);
 					return `![${alt}](${resolvedPath})`;
 				}
@@ -813,8 +816,8 @@ class MarkdownLoader {
 			{
 				regex: /\[([^\]]*)\]\(\.\/([^)]+)\)/g,
 				description: 'markdown links (relative)',
-				replacer: (match) => {
-					const [, text, path] = match;
+				replacer: (matchArgs) => {
+					const [full, text, path] = matchArgs;
 					const resolvedPath = resolvePath('relative', './' + path);
 					return `[${text}](${resolvedPath})`;
 				}
@@ -823,9 +826,9 @@ class MarkdownLoader {
 			{
 				regex: /\[([^\]]*)\]\(\/([^)]+)\)/g,
 				description: 'markdown links (absolute)',
-				replacer: (match) => {
-					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
-					const [, text, path] = match;
+				replacer: (matchArgs) => {
+					const [full, text, path] = matchArgs;
+					if (isLocalMode) return full; // Skip absolute paths in local mode
 					const resolvedPath = resolvePath('absolute', '/' + path);
 					return `[${text}](${resolvedPath})`;
 				}
@@ -834,8 +837,8 @@ class MarkdownLoader {
 			{
 				regex: /\[([^\]]*)\]\((\.\.\/[^)]+)\)/g,
 				description: 'markdown links (parent)',
-				replacer: (match) => {
-					const [, text, path] = match;
+				replacer: (matchArgs) => {
+					const [full, text, path] = matchArgs;
 					const resolvedPath = resolvePath('parent', path);
 					return `[${text}](${resolvedPath})`;
 				}
@@ -844,8 +847,8 @@ class MarkdownLoader {
 			{
 				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="\.\/([^"]+)"/g,
 				description: 'HTML attributes (relative)',
-				replacer: (match) => {
-					const [, attr, path] = match;
+				replacer: (matchArgs) => {
+					const [full, attr, path] = matchArgs;
 					const resolvedPath = resolvePath('relative', './' + path);
 					return `${attr}="${resolvedPath}"`;
 				}
@@ -854,9 +857,9 @@ class MarkdownLoader {
 			{
 				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="\/([^"]+)"/g,
 				description: 'HTML attributes (absolute)',
-				replacer: (match) => {
-					if (isLocalMode) return match[0]; // Skip absolute paths in local mode
-					const [, attr, path] = match;
+				replacer: (matchArgs) => {
+					const [full, attr, path] = matchArgs;
+					if (isLocalMode) return full; // Skip absolute paths in local mode
 					const resolvedPath = resolvePath('absolute', '/' + path);
 					return `${attr}="${resolvedPath}"`;
 				}
@@ -865,8 +868,8 @@ class MarkdownLoader {
 			{
 				regex: /\b((?:data-)?(?:src|href|background(?:-video)?))="(\.\.\/[^"]+)"/g,
 				description: 'HTML attributes (parent)',
-				replacer: (match) => {
-					const [, attr, path] = match;
+				replacer: (matchArgs) => {
+					const [full, attr, path] = matchArgs;
 					const resolvedPath = resolvePath('parent', path);
 					return `${attr}="${resolvedPath}"`;
 				}

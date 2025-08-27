@@ -175,8 +175,7 @@
   grid-template-columns: repeat(10, 1fr) !important;
   grid-template-rows: 1fr 1fr 1fr !important;
   gap: 0.5rem !important;
-  height: 70vh !important; /* Reduced height to prevent overflow */
-  max-height: calc(100% - 120px) !important; /* Ensure it fits within slide boundaries */
+  height: 80vh !important;
   margin-top: 60px !important; /* Space for header */
   padding: 0.5rem !important;
   box-sizing: border-box !important;
@@ -211,8 +210,7 @@
   display: grid !important;
   grid-template-columns: repeat(10, 1fr) !important;
   grid-template-rows: 1fr 1fr 1fr !important; /* Three rows for content, header handled by Reveal.js */
-  height: auto !important;
-  max-height: 100% !important;
+  height: 100% !important;
   
   ul {
     display: block !important;
@@ -271,23 +269,11 @@
 }
 
 // Header styling - explicitly positioned above grid
-/* Handle headers (h1-h4) that are in relation to the BMC section */
-.reveal .slides section.bmc ~ h1,
+/* Handle header that's in a previous slide element in Reveal.js */
 .reveal .slides section.bmc ~ h2,
-.reveal .slides section.bmc ~ h3,
-.reveal .slides section.bmc ~ h4,
-.reveal .slides section.bmc + h1,
 .reveal .slides section.bmc + h2,
-.reveal .slides section.bmc + h3,
-.reveal .slides section.bmc + h4,
-.reveal .slides section h1 + section.bmc,
 .reveal .slides section h2 + section.bmc,
-.reveal .slides section h3 + section.bmc,
-.reveal .slides section h4 + section.bmc,
-.reveal .slides section.bmc h1,
-.reveal .slides section.bmc h2,
-.reveal .slides section.bmc h3,
-.reveal .slides section.bmc h4 {
+.reveal .slides section.bmc h2 {
   position: absolute !important;
   top: -90px !important; /* Fixed position relative to the canvas */
   left: 0 !important;
