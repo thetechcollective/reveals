@@ -1006,13 +1006,20 @@ class MarkdownLoader {
 			
 			document.title = `reveal.js - ${params.file || DEFAULT_CONFIG.file}`;
 			
+			const plugins = [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ];
+			
+			// Only add RevealMermaid if it's available
+			if (typeof RevealMermaid !== 'undefined') {
+				plugins.push(RevealMermaid);
+			}
+			
 			Reveal.initialize({
 				controls: true,
 				progress: true,
 				history: true,
 				center: true,
 				hash: true,
-				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+				plugins: plugins
 			});
 		}
 	}
@@ -1055,13 +1062,22 @@ class MarkdownLoader {
 			}
 			
 			// Build the reveal configuration
+			console.log('Is RevealMermaid defined?', typeof RevealMermaid !== 'undefined');
+			
+			const plugins = [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ];
+			
+			// Only add RevealMermaid if it's available
+			if (typeof RevealMermaid !== 'undefined') {
+				plugins.push(RevealMermaid);
+			}
+			
 			const revealConfig = {
 				controls: true,
 				progress: true,
 				history: true,
 				center: true,
 				hash: true,
-				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+				plugins: plugins
 			};
 			
 			// Apply transition if specified
@@ -1086,13 +1102,20 @@ class MarkdownLoader {
 			
 			document.title = `reveal.js - ${params.file}`;
 			
+			const plugins = [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ];
+			
+			// Only add RevealMermaid if it's available
+			if (typeof RevealMermaid !== 'undefined') {
+				plugins.push(RevealMermaid);
+			}
+			
 			Reveal.initialize({
 				controls: true,
 				progress: true,
 				history: true,
 				center: true,
 				hash: true,
-				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight, RevealMath.KaTeX ]
+				plugins: plugins
 			});
 		}
 	}

@@ -30,11 +30,25 @@
 		<script src="/plugin/markdown/markdown.js"></script>
 		<script src="/plugin/highlight/highlight.js"></script>
         <script src="/plugin/math/math.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+		<script src="/plugin/mermaid/plugin.js"></script>
 		<script src="/js/markdownloader.js"></script>
 
 		<script>
 			// Initialize when DOM is ready
 			document.addEventListener('DOMContentLoaded', async () => {
+				// Initialize mermaid with default config
+				if (typeof mermaid !== 'undefined') {
+					mermaid.initialize({ 
+						startOnLoad: false, // We will manually trigger rendering
+						theme: 'default', 
+						securityLevel: 'loose',
+						fontFamily: 'sans-serif'
+					});
+				} else {
+					console.warn('Mermaid library not available');
+				}
+				
 				const markdownLoader = new MarkdownLoader();
 				await markdownLoader.initialize();
 			});
