@@ -1,49 +1,53 @@
-#### Business Model Canvas
+#### .tech that - burn rate
 
 <!-- .slide: class="bmc" -->
 
-- item a
-- item b
+- Freelancers
+- Interns
 
 <!-- .element class="bmc-partners" -->
 
-- item c
-- item d
+- Hack hack
+- Courses
+- Events
 
 <!-- .element class="bmc-activities" -->
 
-- item e
-- item f
+- .ttc employees
 
 <!-- .element class="bmc-resources" -->
 
-- item g
-- item h
+- GxP grade software development
+- DORA Elite
 
 <!-- .element class="bmc-valueprop" -->
 
-- item i
-- item j
+- House orchestra
+- Trusted partners
 
 <!-- .element class="bmc-relations" -->
 
-- item k
-- item l
+- Community Karma
+- Reputation
+- Referral
 
 <!-- .element class="bmc-channels" -->
 
-- item m
-- item n
+- Business and mission critical
+- Green Field (Big Dreams)
+- Wicked Problems
 
 <!-- .element class="bmc-segments" -->
 
-- item o
-- item p
+- Salaries
+- Equipment
+- Licenses
+- Training
+- R&D
 
 <!-- .element class="bmc-cost" -->
 
-- item q
-- item r
+- Invoicing
 
 <!-- .element class="bmc-revenue" -->
 

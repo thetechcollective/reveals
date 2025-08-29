@@ -167,6 +167,44 @@
       background: inherit;
     }
   }
+  
+  /* Styling for wide boxes (cost and revenue) */
+  .bmc-cost > ul,
+  .bmc-revenue > ul,
+  ul.bmc-cost,
+  ul.bmc-revenue {
+     // display: flex !important;
+     // flex-wrap: wrap !important;
+     // align-content: flex-start !important;
+     // justify-content: flex-start !important; /* Start from left, no extra space */
+     // padding: 0 !important; /* No padding */
+     // font-size: 0 !important; /* Remove whitespace between inline-block elements */
+    
+    li {
+      /* Fixed width that's narrow enough to fit multiple in a row */
+      //flex: 0 0 auto !important;
+      //width: calc(50% - 0.25rem) !important; /* Two columns with minimal gap */
+      min-width: 40% !important; /* Minimum width to enforce multiple columns */
+      max-width: 44% !important; /* Maximum width cap */
+      //margin: 0.1rem !important; /* Minimal margins */
+      //font-size: 0.40em !important; /* Reset font size (since parent is 0) */
+    }
+  }
+  
+  /* For any other box that needs multi-column layout */
+  [class*="bmc-"].wide-box > ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+    font-size: 0 !important; /* Remove whitespace between inline-block elements */
+    
+    li {
+      flex: 0 0 auto !important;
+      width: calc(50% - 0.25rem) !important;
+      margin: 0.1rem !important; /* Minimal margins */
+      font-size: 0.40em !important; /* Reset font size (since parent is 0) */
+    }
+  }
 }
 
 // reveal.js specific overrides to ensure grid layout works
@@ -174,8 +212,9 @@
   display: grid !important;
   grid-template-columns: repeat(10, 1fr) !important;
   grid-template-rows: 1fr 1fr 1fr !important;
-  gap: 0.5rem !important;
-  height: 80vh !important;
+  gap: 0.3rem !important; /* Reduced gap for more content space */
+  height: 75vh !important; /* Slightly increased height */
+  max-height: calc(100% - 110px) !important; /* Ensure it fits within slide boundaries */
   margin-top: 60px !important; /* Space for header */
   padding: 0.5rem !important;
   box-sizing: border-box !important;
@@ -184,23 +223,75 @@
   
   > ul {
     display: block !important;
+    color: #3673c1;
     position: relative !important;
     margin: 0 !important;
     padding: 0 !important; /* Remove all padding to fix box overlap */
-    border: 1px solid #ccc !important;
+    border: 1px solid #ddd !important; /* Lighter border */
     border-radius: 4px !important;
     background: #f9f9f9 !important;
     overflow-y: auto !important;
     min-height: 0 !important;
     height: 100% !important;
     width: 100% !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    list-style: disc inside !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; /* Lighter shadow */
+    list-style: none !important;
+    line-height: 0.65em;
     
-    /* Add padding to list items instead of the container */
+    /* Slim scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 5px !important;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: transparent !important;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.2) !important;
+      border-radius: 10px !important;
+    }
+    
+    /* Style list items as Post-It notes - more compact layout */
     li {
-      padding: 0 0.75rem !important;
-      margin: 0.4rem 0 !important;
+      padding: 0.3rem 0.4rem !important; /* Reduced padding */
+      margin: 0.2rem !important; /* Much smaller even margins */
+      background-color: #F5E49C !important; /* Muted Post-It yellow */
+      border-radius: 2px !important;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.12) !important; /* Even smaller shadow */
+      position: relative !important;
+      z-index: 1 !important; /* Base z-index for stacking */
+      font-size: 0.40em !important; /* Small font size */
+      line-height: 0.95 !important; /* Tight line height */
+      min-width: 80% ; /* Minimum width to enforce multiple columns */
+      max-width: 89% ; /* Maximum width cap */
+      display: inline-block !important; /* Allow items to flow in columns */
+      
+      /* Subtle rotation for realistic look - reduced angles for compact layout */
+      &:nth-child(odd) {
+        transform: rotate(-0.8deg) !important;
+        z-index: 2 !important; /* Slightly higher z-index for odd items */
+      }
+      
+      &:nth-child(even) {
+        transform: rotate(0.8deg) !important;
+        z-index: 3 !important; /* Even higher z-index for even items */
+      }
+      
+      /* Occasional slight variations for more natural look - reduced angles */
+      &:nth-child(3n) {
+        transform: rotate(-0.8deg) !important;
+      }
+      
+      &:nth-child(5n) {
+        transform: rotate(0.8deg) !important;
+      }
+      
+      /* Make bullet points and list markers more compact if present */
+      ul, ol {
+        padding-left: 1rem !important;
+        margin: 0.2rem 0 !important;
+      }
     }
   }
 }
@@ -210,7 +301,8 @@
   display: grid !important;
   grid-template-columns: repeat(10, 1fr) !important;
   grid-template-rows: 1fr 1fr 1fr !important; /* Three rows for content, header handled by Reveal.js */
-  height: 100% !important;
+  height: auto !important;
+  max-height: 100% !important;
   
   ul {
     display: block !important;
@@ -269,11 +361,23 @@
 }
 
 // Header styling - explicitly positioned above grid
-/* Handle header that's in a previous slide element in Reveal.js */
+/* Handle headers (h1-h4) that are in relation to the BMC section */
+.reveal .slides section.bmc ~ h1,
 .reveal .slides section.bmc ~ h2,
+.reveal .slides section.bmc ~ h3,
+.reveal .slides section.bmc ~ h4,
+.reveal .slides section.bmc + h1,
 .reveal .slides section.bmc + h2,
+.reveal .slides section.bmc + h3,
+.reveal .slides section.bmc + h4,
+.reveal .slides section h1 + section.bmc,
 .reveal .slides section h2 + section.bmc,
-.reveal .slides section.bmc h2 {
+.reveal .slides section h3 + section.bmc,
+.reveal .slides section h4 + section.bmc,
+.reveal .slides section.bmc h1,
+.reveal .slides section.bmc h2,
+.reveal .slides section.bmc h3,
+.reveal .slides section.bmc h4 {
   position: absolute !important;
   top: -90px !important; /* Fixed position relative to the canvas */
   left: 0 !important;
